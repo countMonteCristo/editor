@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(main)
+project(editor)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++11")
@@ -39,5 +39,5 @@ set(SOURCES
     src/text.cpp
 )
 
-add_executable(main ${SOURCES})
-target_link_libraries(main ${SDL2_ttf_LIBRARIES} ${LIBCONFIG++_LIBRARIES} ${FONTCONFIG_LIBRARIES})
+add_executable(editor ${SOURCES})
+target_link_libraries(editor ${SDL2_ttf_LIBRARIES} ${LIBCONFIG++_LIBRARIES} ${FONTCONFIG_LIBRARIES})
