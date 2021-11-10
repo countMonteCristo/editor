@@ -41,7 +41,7 @@ void Settings::init(const std::string& config_path) {
 
     try {
         config.readFile(config_path_.c_str());
-    } catch (const libconfig::FileIOException) {
+    } catch (const libconfig::FileIOException&) {
         Logger::instance().critical("libconfig++: cannot load config from file " + config_path_);
     }
 
