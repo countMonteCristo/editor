@@ -196,6 +196,7 @@ void MainWindow::show() {
                             break;
                         }
                     }
+                    break;
                 }
                 case SDL_WINDOWEVENT: {
                     switch (event.window.event) {

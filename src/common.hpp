@@ -22,7 +22,7 @@ constexpr int FONT_SCALE = 1;
 
 
 constexpr int FPS = 30;
-static const Uint32 FRAME_TIME_MS = static_cast<const Uint32>(1000.0 / FPS);
+static const Uint32 FRAME_TIME_MS = static_cast<Uint32>(1000.0 / FPS);
 
 #define UNWRAP_U64(x) \
     static_cast<uint8_t>((x & 0xFF000000) >> 8*3), \
