@@ -4,6 +4,26 @@ Just another text editor in C++
 There are a lot of different text editor implementations, some of them are good enough, some of them not. Here is yet another text editor written in C++ 
 only for studying purposes (and also for fun!).
 
+## Roadmap
+
+- [x] Simple text editor
+  - [x] Font
+    - [x] Use character tiles from stored PNG file as a font
+    - [x] Support monospaced fonts
+  - [x] Base key bindings
+  - [x] Scrolling
+  - [x] Mouse support
+- [ ] UI
+  - [x] Panels for line numbers and cursor position
+  - [x] Selection using keyborad and mouse
+  - [x] History for undo/redo
+  - [ ] Context Menu
+  - [ ] Command mode
+  - [ ] Multiple cursors
+  - [ ] Wrap long lines
+  - [ ] Tabs for editing several files simultaneously
+- [ ] Tests
+
 ## Getting started
 ### Dependencies
 * gcc or clang or other c++ compiler
