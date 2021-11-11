@@ -201,6 +201,15 @@ void Editor::insert_from_clipboard() {
     _update_max_line_no_chars_width();
 }
 
+void Editor::cut_to_clipboard() {
+    if ( selection_.get_state() != SELECTION_HIDDEN ) {
+        selection_to_clipboard();
+        remove_text(selection_.start(), selection_.finish());
+        selection_.set_state(SELECTION_HIDDEN);
+        move_cursor(selection_.start() - cursor_pos());
+    }
+}
+
 void Editor::select_all() {
     selection_.set_begin({0, 0});
     selection_.set_end({doc_.line_width(-1), doc_.total_lines() - 1});

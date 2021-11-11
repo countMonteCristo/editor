@@ -38,6 +38,7 @@ public:
     void update_selection(bool shift_down);
     void selection_to_clipboard();
     void insert_from_clipboard();
+    void cut_to_clipboard();
     void select_all();
 
     void insert_text(const Vec2i& pos, const Text& text);

@@ -1,7 +1,7 @@
 # editor
 Just another text editor in C++
 
-There are a lot of different text editor implementations, some of them are good enough, some of them not. Here is yet another text editor written in C++ 
+There are a lot of different text editor implementations, some of them are good enough, some of them not. Here is yet another text editor written in C++
 only for studying purposes (and also for fun!).
 
 ## Roadmap
@@ -37,7 +37,7 @@ only for studying purposes (and also for fun!).
 ### Installation
 1. Install dependencies:
 ```sh
-$ sudo apt-get install gcc cmake libsdl2-dev libsdl2-ttf-dev libconfig++-dev libfontconfig1 
+$ sudo apt-get install gcc cmake libsdl2-dev libsdl2-ttf-dev libconfig++-dev libfontconfig1
 ```
 
 2. Clone the repo:
@@ -65,6 +65,7 @@ make
 | CTRL+Y      | Redo                               |
 | CTRL+C      | Copy selected text to clipboard    |
 | CTRL+V      | Paste selected text from clipboard |
+| CTRL+X      | Cut selected text to clipboard     |
 | CTRL+A      | Select whole text                  |
 | ↑←↓→        | Navigation                         |
 | PgUp        | Go up on one screen                |

@@ -80,6 +80,7 @@ void MainWindow::show() {
         // TODO: command line for searching, replacing, etc
         // TODO: Ctrl-X for cut selected text
         // TODO: menu bar
+        // TODO: save selection state in history items
 
         while(SDL_PollEvent(&event) != 0) {
             bool control_down = Keyboard::ctrl_pressed();
@@ -119,6 +120,11 @@ void MainWindow::show() {
                         case SDLK_v: {
                             if (control_down)
                                 editor_.insert_from_clipboard();
+                            break;
+                        }
+                        case SDLK_x: {
+                            if (control_down)
+                                editor_.cut_to_clipboard();
                             break;
                         }
                         case SDLK_a: {
