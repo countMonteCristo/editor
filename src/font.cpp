@@ -11,14 +11,12 @@
 Font::Font()
     : font_(nullptr)
 {
-    if ( TTF_Init() == -1) {
-        std::string err_msg = std::string("TTF_Init: ") + TTF_GetError();
-        Logger::instance().critical(err_msg);
+    if ( !ttfi(TTF_Init()) ) {
+        Logger::instance().debug("SDL2_TTF: successfully initialized");
     }
-    Logger::instance().debug("SDL2_TTF: successfully initialized");
 
     SDL_version compiled;
-    const SDL_version *linked = TTF_Linked_Version();
+    const SDL_version *linked = ttfp(TTF_Linked_Version());
     TTF_VERSION(&compiled);
     log_lib_version(compiled, *linked, "SDL2_TTF");
 
@@ -88,10 +86,7 @@ void Font::_load_font(const std::string& font_filepath, int ptsize) {
         TTF_CloseFont(font_);
     }
 
-    font_ = TTF_OpenFont(filepath_.c_str(), ptsize);
-    if (!font_) {
-        Logger::instance().critical(std::string("TTF_OpenFont: ") + TTF_GetError());
-    }
+    font_ = ttfp(TTF_OpenFont(filepath_.c_str(), ptsize));
 }
 
 int Font::width() const {
@@ -115,7 +110,7 @@ SDL_Texture*  Font::get_glyph_texture(const Glyph& glyph) {
     auto glyph_it = cache_.find(glyph);
     if ( (glyph_it == cache_.end()) || ( glyph_it->second.find(color) == glyph_it->second.end() ) ) {
         SDL_Surface* glyph_surface = _generate_glyph_surface(glyph);
-        SDL_Texture *glyph_texture = SDL_CreateTextureFromSurface(renderer_, glyph_surface);
+        SDL_Texture *glyph_texture = sdlp(SDL_CreateTextureFromSurface(renderer_, glyph_surface));
         cache_[glyph][color] = glyph_texture;
     }
     return cache_[glyph][color];
@@ -125,11 +120,11 @@ SDL_Surface* Font::_generate_glyph_surface(const Glyph& glyph) {
     SDL_Color sdl_color = { UNWRAP_U64(glyph.color()) };
     const char* text = glyph.c_str();
 #if FONT_RENDER_STYLE == FONT_RENDER_SOLID
-    SDL_Surface *glyph_surface = TTF_RenderUTF8_Solid(font_, text, sdl_color);
+    SDL_Surface *glyph_surface = ttfp(TTF_RenderUTF8_Solid(font_, text, sdl_color));
 #elif FONT_RENDER_STYLE == FONT_RENDER_SHADED
-    SDL_Surface *glyph_surface = TTF_RenderUTF8_Shaded(font_, text, sdl_color, {0,0,0,0});
+    SDL_Surface *glyph_surface = ttfp(TTF_RenderUTF8_Shaded(font_, text, sdl_color, {0,0,0,0}));
 #elif FONT_RENDER_STYLE == FONT_RENDER_BLENDED
-    SDL_Surface *glyph_surface = TTF_RenderUTF8_Blended(font_, text, sdl_color);
+    SDL_Surface *glyph_surface = ttfp(TTF_RenderUTF8_Blended(font_, text, sdl_color));
 #endif
     return glyph_surface;
 }

@@ -19,8 +19,8 @@ EditorRenderer::~EditorRenderer() {
 void EditorRenderer::render_glyph(const Glyph& glyph, const SDL_Rect& dst_rect) {
     // int w, h;
     SDL_Texture *glyph_texture = font_.get_glyph_texture(glyph);
-    // SDL_QueryTexture(glyph_texture, NULL, NULL, &w, &h);
-    SDL_RenderCopy(renderer_impl_, glyph_texture, NULL, &dst_rect);
+    // sdli(SDL_QueryTexture(glyph_texture, NULL, NULL, &w, &h));
+    sdli(SDL_RenderCopy(renderer_impl_, glyph_texture, NULL, &dst_rect));
 }
 
 void EditorRenderer::render_text_line(const line_t& line, const size_t count, Vec2i pos) {
@@ -50,7 +50,7 @@ void EditorRenderer::render_text_line(const line_t& line, const size_t count, Ve
 
 void EditorRenderer::render_text(const Text& text, Vec2i pos, Vec2i camera_pos) {
     const uint32_t color = Settings::const_instance().const_colors().text;
-    SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
+    sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
 
     const SDL_Rect& text_rect = resize_to_char_size(text_viewport_, font_width(), font_height());
 
@@ -77,7 +77,7 @@ void EditorRenderer::render_cursor(const Cursor& cursor, const Text& text, Vec2i
     if ( std::sin(2 * M_PI * time_ms / cursor.blinkrate_ms()) > 0) {
         Vec2i pen = camera_project_point(nullptr, pos, camera_pos);
         const uint32_t color = Settings::const_instance().const_colors().cursor;
-        SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
+        sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
 
         SDL_Rect cursor_rect = {
             pen.x * font_width() * FONT_SCALE,
@@ -92,18 +92,18 @@ void EditorRenderer::render_cursor(const Cursor& cursor, const Text& text, Vec2i
 
         switch (cursor.shape()) {
         case CursorShape::IBeam:
-            SDL_RenderDrawLine(renderer_impl_, cursor_rect.x, cursor_rect.y,
-                                cursor_rect.x, cursor_rect.y + cursor_rect.h);
+            sdli(SDL_RenderDrawLine(renderer_impl_, cursor_rect.x, cursor_rect.y,
+                                    cursor_rect.x, cursor_rect.y + cursor_rect.h));
             break;
         case CursorShape::Rect:
-            SDL_RenderDrawRect(renderer_impl_, &cursor_rect);
+            sdli(SDL_RenderDrawRect(renderer_impl_, &cursor_rect));
             break;
         case CursorShape::Underscore:
-            SDL_RenderDrawLine(renderer_impl_, cursor_rect.x, cursor_rect.y + cursor_rect.h,
-                                cursor_rect.x + cursor_rect.w, cursor_rect.y + cursor_rect.h);
+            sdli(SDL_RenderDrawLine(renderer_impl_, cursor_rect.x, cursor_rect.y + cursor_rect.h,
+                                    cursor_rect.x + cursor_rect.w, cursor_rect.y + cursor_rect.h));
             break;
         case CursorShape::FilledRect:
-            SDL_RenderFillRect(renderer_impl_, &cursor_rect);
+           sdli(SDL_RenderFillRect(renderer_impl_, &cursor_rect));
             if ((pos.x >= 0) && (pos.x < text.line_width(pos.y))) {
                 g = line[pos.x];
                 g.set_color(inv_color);
@@ -121,11 +121,11 @@ void EditorRenderer::render_rulers(Vec2i camera_pos) {
     const std::vector<int>& rulers = Settings::const_instance().const_rulers();
 
     const uint32_t color = Settings::const_instance().const_colors().ui;
-    SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
+    sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
 
     for (const int max_chars: rulers) {
         Vec2i pen = {(max_chars - camera_pos.x)*font_width(), 0};
-        SDL_RenderDrawLine(renderer_impl_, pen.x, pen.y, pen.x, pen.y + text_viewport_.h);
+        sdli(SDL_RenderDrawLine(renderer_impl_, pen.x, pen.y, pen.x, pen.y + text_viewport_.h));
     }
 }
 
@@ -155,8 +155,8 @@ void EditorRenderer::render_line_numbers(const Text& text, Vec2i camera_pos) {
     }
 
     const uint32_t color = Settings::const_instance().const_colors().ui;
-    SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
-    SDL_RenderDrawLine(renderer_impl_, line_no_viewport_.w-1, 0, line_no_viewport_.w-1, line_no_viewport_.h);
+    sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
+    sdli(SDL_RenderDrawLine(renderer_impl_, line_no_viewport_.w-1, 0, line_no_viewport_.w-1, line_no_viewport_.h));
 }
 
 void EditorRenderer::render_info_panel(const Cursor& cursor) {
@@ -177,14 +177,14 @@ void EditorRenderer::render_info_panel(const Cursor& cursor) {
 
     // render border line for info panel
     const uint32_t color = Settings::const_instance().const_colors().ui;
-    SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
-    SDL_RenderDrawLine(renderer_impl_, 0, 1, info_viewport_.w, 1);
+    sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
+    sdli(SDL_RenderDrawLine(renderer_impl_, 0, 1, info_viewport_.w, 1));
 }
 
 void EditorRenderer::render_selection(const Selection& selection, const Text& text, Vec2i camera_pos) {
     if ( selection.get_state() != SELECTION_HIDDEN ) {
         const uint64_t color = Settings::const_instance().const_colors().selection;
-        SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
+        sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
 
         Vec2i start, finish;
         if (selection.begin().y <= selection.end().y) {
@@ -209,7 +209,7 @@ void EditorRenderer::render_selection(const Selection& selection, const Text& te
                 font_height() * FONT_SCALE
             };
 
-            SDL_RenderFillRect(renderer_impl_, &selection_rect);
+            sdli(SDL_RenderFillRect(renderer_impl_, &selection_rect));
         }
 
 
@@ -218,22 +218,22 @@ void EditorRenderer::render_selection(const Selection& selection, const Text& te
 
 void EditorRenderer::render_editor_area(const Cursor& cursor, const Text& text, const Selection& selection, Vec2i camera_pos) {
     // TODO: Scaling does not work properly with PageUp / PageDown
-    // SDL_RenderSetScale(renderer_impl_, 2., 2.);
+    // sdli(SDL_RenderSetScale(renderer_impl_, 2., 2.));
 
     const uint32_t color = Settings::const_instance().const_colors().bg;
-    SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color));
-    SDL_RenderClear(renderer_impl_);
+    sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
+    sdli(SDL_RenderClear(renderer_impl_));
 
-    SDL_RenderSetViewport(renderer_impl_, &text_viewport_);
+    sdli(SDL_RenderSetViewport(renderer_impl_, &text_viewport_));
     render_selection(selection, text, camera_pos);
     render_text(text, {0,0}, camera_pos);
     render_rulers(camera_pos);
     render_cursor(cursor, text, camera_pos);
 
-    SDL_RenderSetViewport(renderer_impl_, &line_no_viewport_);
+    sdli(SDL_RenderSetViewport(renderer_impl_, &line_no_viewport_));
     render_line_numbers(text, camera_pos);
 
-    SDL_RenderSetViewport(renderer_impl_, &info_viewport_);
+    sdli(SDL_RenderSetViewport(renderer_impl_, &info_viewport_));
     render_info_panel(cursor);
 
     SDL_RenderPresent(renderer_impl_);

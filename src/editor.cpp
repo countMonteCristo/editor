@@ -44,7 +44,7 @@ void Editor::_set_mouse_cursor_shape(int x, int y) {
     } else {
         system_cursor_id = SDL_SYSTEM_CURSOR_ARROW;
     }
-    SDL_Cursor* cursor = SDL_CreateSystemCursor(system_cursor_id);
+    SDL_Cursor* cursor = sdlp(SDL_CreateSystemCursor(system_cursor_id));
     SDL_SetCursor(cursor);
 }
 
@@ -187,7 +187,7 @@ void Editor::selection_to_clipboard() {
     }
 
     std::string selected_text = selection_.selected_text(doc_.text());
-    SDL_SetClipboardText(selected_text.c_str());
+    sdli(SDL_SetClipboardText(selected_text.c_str()));
 }
 
 void Editor::insert_from_clipboard() {
@@ -308,7 +308,7 @@ void Editor::handle_delete() {
 }
 
 void Editor::handle_keyboard_move_pressed() {
-    const Uint8* keyboard = SDL_GetKeyboardState(NULL);
+    const Uint8* keyboard = sdlp(SDL_GetKeyboardState(nullptr));
 
     bool shift_down = Keyboard::shift_pressed();
     bool control_down = Keyboard::ctrl_pressed();

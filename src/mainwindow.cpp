@@ -13,11 +13,8 @@
 
 
 void init_sdl(void) {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        Logger::instance().critical(std::string("SDL_Init Error: ") + SDL_GetError());
-    } else {
+    if ( !sdli(SDL_Init(SDL_INIT_VIDEO)) )
         Logger::instance().debug("SDL2: successfully initialized");
-    }
 
     SDL_version compiled;
     SDL_version linked;
@@ -50,7 +47,7 @@ MainWindow::~MainWindow() {
 }
 
 bool MainWindow::init() {
-    win_impl_ = SDL_CreateWindow(nullptr, x_, y_, width_, height_, SDL_WINDOW_RESIZABLE);
+    win_impl_ = sdlp(SDL_CreateWindow(nullptr, x_, y_, width_, height_, SDL_WINDOW_RESIZABLE));
 
     if (win_impl_ == NULL) {
         return false;
@@ -64,10 +61,7 @@ void MainWindow::show() {
     SDL_Event event;
     bool quit = false;
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(win_impl_, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == nullptr) {
-        Logger::instance().critical(std::string("Can't create renderer: ") + SDL_GetError());
-    }
+    SDL_Renderer *renderer = sdlp(SDL_CreateRenderer(win_impl_, -1, SDL_RENDERER_ACCELERATED));
 
     editor_.set_renderer(renderer, win_impl_);
 
