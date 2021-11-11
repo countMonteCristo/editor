@@ -15,18 +15,20 @@ enum class CursorShape {
     IBeam = 0,
     Rect,
     Underscore,
+    FilledRect,
 };
 
 const std::unordered_map<std::string, CursorShape> str_to_cursor_shape = {
     {"ibeam",       CursorShape::IBeam},
     {"rect",        CursorShape::Rect},
     {"underscore",  CursorShape::Underscore},
+    {"filled_rect", CursorShape::FilledRect},
 };
 
 
 class Cursor {
 public:
-    explicit Cursor();// : text_pos_({0, 0}), cached_x_(0), phase_ms_(0), shape_(CursorShape::Underscore) {}
+    explicit Cursor();
     ~Cursor() {}
 
     inline int row() const { return text_pos_.y; }

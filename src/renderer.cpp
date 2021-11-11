@@ -69,7 +69,7 @@ void EditorRenderer::render_text(const Text& text, Vec2i pos, Vec2i camera_pos) 
     }
 }
 
-void EditorRenderer::render_cursor(const Cursor& cursor, Vec2i camera_pos) {
+void EditorRenderer::render_cursor(const Cursor& cursor, const Text& text, Vec2i camera_pos) {
 
     Uint32 time_ms = SDL_GetTicks() - cursor.phase_ms();
     const Vec2i& pos = cursor.text_pos();
@@ -86,6 +86,10 @@ void EditorRenderer::render_cursor(const Cursor& cursor, Vec2i camera_pos) {
             font_height() * FONT_SCALE
         };
 
+        const line_t& line = text.line_at(pos);
+        const uint32_t inv_color = 0xFFFFFFFF - color;
+        Glyph g;
+
         switch (cursor.shape()) {
         case CursorShape::IBeam:
             SDL_RenderDrawLine(renderer_impl_, cursor_rect.x, cursor_rect.y,
@@ -97,6 +101,14 @@ void EditorRenderer::render_cursor(const Cursor& cursor, Vec2i camera_pos) {
         case CursorShape::Underscore:
             SDL_RenderDrawLine(renderer_impl_, cursor_rect.x, cursor_rect.y + cursor_rect.h,
                                 cursor_rect.x + cursor_rect.w, cursor_rect.y + cursor_rect.h);
+            break;
+        case CursorShape::FilledRect:
+            SDL_RenderFillRect(renderer_impl_, &cursor_rect);
+            if ((pos.x >= 0) && (pos.x < text.line_width(pos.y))) {
+                g = line[pos.x];
+                g.set_color(inv_color);
+                render_glyph(g, cursor_rect);
+            }
             break;
         default:
             Logger::instance().critical("Cannot draw cursor of unknown shape");
@@ -216,7 +228,7 @@ void EditorRenderer::render_editor_area(const Cursor& cursor, const Text& text, 
     render_selection(selection, text, camera_pos);
     render_text(text, {0,0}, camera_pos);
     render_rulers(camera_pos);
-    render_cursor(cursor, camera_pos);
+    render_cursor(cursor, text, camera_pos);
 
     SDL_RenderSetViewport(renderer_impl_, &line_no_viewport_);
     render_line_numbers(text, camera_pos);

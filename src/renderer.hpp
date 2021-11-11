@@ -23,7 +23,7 @@ public:
     void render_text_line(const line_t& line, const size_t count, Vec2i pos);
 
     void render_text(const Text& text, Vec2i pos, Vec2i camera_pos);
-    void render_cursor(const Cursor& cursor, Vec2i camera_pos);
+    void render_cursor(const Cursor& cursor, const Text& text, Vec2i camera_pos);
     void render_rulers(Vec2i camera_pos);
     void render_line_numbers(const Text& text, Vec2i camera_pos);
     void render_info_panel(const Cursor& cursor);
