@@ -44,7 +44,7 @@ T* sdlp(T* ptr) {
         Logger::instance().critical(std::string("SDL critical error: ") + SDL_GetError());
     }
     return ptr;
-};
+}
 
 template<typename T>
 T sdli(T val) {
@@ -52,7 +52,7 @@ T sdli(T val) {
         Logger::instance().error(std::string("SDL error: ") + SDL_GetError());
     }
     return val;
-};
+}
 
 template<typename T>
 T* ttfp(T* ptr) {
@@ -60,7 +60,7 @@ T* ttfp(T* ptr) {
         Logger::instance().critical(std::string("SDL_TTF critical error: ") + TTF_GetError());
     }
     return ptr;
-};
+}
 
 template<typename T>
 T ttfi(T val) {
@@ -68,6 +68,6 @@ T ttfi(T val) {
         Logger::instance().error(std::string("SDL_TTF error: ") + TTF_GetError());
     }
     return val;
-};
+}
 
 #endif // COMMON_HPP_
