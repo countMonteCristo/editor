@@ -22,8 +22,6 @@ Cursor::Cursor()
     blinkrate_ms_ = cursor_settings.blinkrate_ms;
 }
 
-// TODO: if cursor is on the first line and UP pressed - move to the line beginning
-// (the same for cursor being on the last line and DOWN pressed)
 void Cursor::set_text_offset(Vec2i d, const Text& text, const Vec2i& window_size) {
     UNUSED(window_size);
 
@@ -50,6 +48,18 @@ void Cursor::set_text_offset(Vec2i d, const Text& text, const Vec2i& window_size
     }
 
     if (d.x != 0) {
+        cached_x_ = text_pos_.x;
+    }
+
+    // If cursor is going to move above the text - set it to the beginning of the first line
+    if (new_y < 0) {
+        text_pos_.x = text_pos_.y = 0;
+        cached_x_ = text_pos_.x;
+    }
+    // If cursor is going to move below the text - set it to the ending of the last line
+    if (new_y >= text.total_lines()) {
+        text_pos_.y = text.total_lines()-1;
+        text_pos_.x = text.line_width(text_pos_.y);
         cached_x_ = text_pos_.x;
     }
 

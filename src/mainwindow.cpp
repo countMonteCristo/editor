@@ -80,8 +80,6 @@ void MainWindow::show() {
         // TODO: command line for searching, replacing, etc
         // TODO: Ctrl-X for cut selected text
         // TODO: menu bar
-        // TODO: chamge mouse cursor to bar when it is above the text area
-        // TODO: settings for customizing text cursor (bar, rect, something else)
 
         while(SDL_PollEvent(&event) != 0) {
             bool control_down = Keyboard::ctrl_pressed();
