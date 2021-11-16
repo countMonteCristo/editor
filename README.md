@@ -53,7 +53,7 @@ make
 
 4. Run
 ```sh
-./main [TEXT_FILE]
+./editor [TEXT_FILE]
 ```
 
 ### Key Bindings
