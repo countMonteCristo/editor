@@ -2,42 +2,25 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-project(editor)
+project(editor LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++11")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+include(GNUInstallDirs)
+# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+#     ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
+#     ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
+    ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-add_definitions(-DFONT_RENDER_STYLE=FONT_RENDER_BLENDED)
+# defines targets and sources
+add_subdirectory(src)
 
-INCLUDE(FindPkgConfig)
+include_directories(src)
 
-PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
-PKG_SEARCH_MODULE(SDL2_ttf REQUIRED SDL2_ttf)
-PKG_SEARCH_MODULE(LIBCONFIG++ REQUIRED libconfig++)
-PKG_SEARCH_MODULE(FONTCONFIG REQUIRED fontconfig)
-
-include_directories(${SDL2_ttf_INCLUDE_DIRS} ${LIBCONFIG++_INCLUDE_DIRS} ${FONTCONFIG_INCLUDE_DIRS})
-
-
-set(SOURCES
-    src/main.cpp
-    src/mainwindow.cpp
-    src/editor.cpp
-    src/cursor.cpp
-    src/renderer.cpp
-    src/common.cpp
-    src/font.cpp
-    src/selection.cpp
-    src/glyph.cpp
-    src/history.cpp
-    src/document.cpp
-    src/settings.cpp
-    src/keyboard.cpp
-    src/logger.cpp
-    src/text.cpp
-)
-
-add_executable(editor ${SOURCES})
-target_link_libraries(editor ${SDL2_ttf_LIBRARIES} ${LIBCONFIG++_LIBRARIES} ${FONTCONFIG_LIBRARIES})
+# enable testing and define tests
+enable_testing()
+add_subdirectory(tests)
