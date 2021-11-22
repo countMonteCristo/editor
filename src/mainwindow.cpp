@@ -13,7 +13,7 @@
 
 
 void init_sdl(void) {
-    if ( !sdli(SDL_Init(SDL_INIT_VIDEO)) )
+    if ( !sdli(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER)) )
         Logger::instance().debug("SDL2: successfully initialized");
 
     SDL_version compiled;
@@ -61,7 +61,7 @@ void MainWindow::show() {
     SDL_Event event;
     bool quit = false;
 
-    SDL_Renderer *renderer = sdlp(SDL_CreateRenderer(win_impl_, -1, SDL_RENDERER_ACCELERATED));
+    SDL_Renderer *renderer = sdlp(SDL_CreateRenderer(win_impl_, -1, SDL_RENDERER_SOFTWARE));
 
     editor_.set_renderer(renderer, win_impl_);
 

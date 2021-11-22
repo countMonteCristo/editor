@@ -103,7 +103,7 @@ void EditorRenderer::render_cursor(const Cursor& cursor, const Text& text, Vec2i
                                     cursor_rect.x + cursor_rect.w, cursor_rect.y + cursor_rect.h));
             break;
         case CursorShape::FilledRect:
-           sdli(SDL_RenderFillRect(renderer_impl_, &cursor_rect));
+            sdli(SDL_RenderFillRect(renderer_impl_, &cursor_rect));
             if ((pos.x >= 0) && (pos.x < text.line_width(pos.y))) {
                 g = line[pos.x];
                 g.set_color(inv_color);
