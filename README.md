@@ -47,13 +47,14 @@ git clone https://github.com/countMonteCristo/editor.git
 
 3. Build project
 ```sh
-cmake .
-make
+mkdir build && cd build
+cmake ..
+make editor
 ```
 
-4. Run
+4. Run (from project home folder)
 ```sh
-./editor [TEXT_FILE]
+./bin/editor [TEXT_FILE]
 ```
 
 ### Key Bindings

@@ -1,2 +1,7 @@
 build/
+bin/
 .vscode/
+CMakeFiles
+Makefile
+*.a
+*.cmake

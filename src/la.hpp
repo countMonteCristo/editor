@@ -48,7 +48,7 @@ struct Vec2 {
         return *this;
     }
 
-    bool operator==(const Vec2<T>& v) {
+    bool operator==(const Vec2<T>& v) const {
         return (x == v.x) && (y==v.y);
     }
 };
@@ -74,8 +74,6 @@ T bounded(T min_value, T max_value, T value) {
         return max_value;
     return value;
 }
-
-
 
 #define LA_HPP_
 #endif // LA_HPP_
