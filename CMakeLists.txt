@@ -4,6 +4,8 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 project(editor LANGUAGES CXX)
 
+set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/bin)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,8 +21,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
 # defines targets and sources
 add_subdirectory(src)
 
+install(TARGETS editor DESTINATION ${CMAKE_INSTALL_PREFIX})
+
 include_directories(src)
 
 # enable testing and define tests
 enable_testing()
-add_subdirectory(tests)
+add_subdirectory(tests EXCLUDE_FROM_ALL)
