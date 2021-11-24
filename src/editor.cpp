@@ -484,8 +484,8 @@ void Editor::log_debug_history() {
 
 
 void Editor::handle_undo() {
+    selection_.set_state(SELECTION_HIDDEN);
     const pItem_t& item = doc_.undo();
-    _adjust_cursor();
 
     if (item && item->selected()) {
         const Vec2i begin = item->pos();
@@ -495,9 +495,11 @@ void Editor::handle_undo() {
         selection_.set_end(end);
         selection_.set_state(SELECTION_FINISHED);
     }
+    _adjust_cursor();
 }
 
 void Editor::handle_redo() {
+    selection_.set_state(SELECTION_HIDDEN);
     doc_.redo();
     _adjust_cursor();
 }
