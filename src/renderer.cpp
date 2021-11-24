@@ -186,14 +186,9 @@ void EditorRenderer::render_selection(const Selection& selection, const Text& te
         const uint64_t color = Settings::const_instance().const_colors().selection;
         sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
 
-        Vec2i start, finish;
-        if (selection.begin().y <= selection.end().y) {
-            start = selection.begin();
-            finish = selection.end();
-        } else {
-            start = selection.end();
-            finish = selection.begin();
-        }
+        const Vec2i start = selection.start();
+        const Vec2i finish = selection.finish();
+
         for (int row = start.y; row <= finish.y; row++) {
 
             int start_col = (row == start.y)? start.x: 0;

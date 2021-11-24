@@ -317,7 +317,6 @@ void Editor::handle_delete() {
     }
 }
 
-// TODO: selection while moving left is broken
 void Editor::handle_keyboard_move_pressed() {
     const Uint8* keyboard = sdlp(SDL_GetKeyboardState(nullptr));
 
