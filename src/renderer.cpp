@@ -182,32 +182,59 @@ void EditorRenderer::render_info_panel(const Cursor& cursor) {
 }
 
 void EditorRenderer::render_selection(const Selection& selection, const Text& text, Vec2i camera_pos) {
-    if ( selection.get_state() != SELECTION_HIDDEN ) {
+    if ( selection.get_state() != SelectionState::HIDDEN ) {
         const uint64_t color = Settings::const_instance().const_colors().selection;
         sdli(SDL_SetRenderDrawColor(renderer_impl_, UNWRAP_U64(color)));
 
         const Vec2i start = selection.start();
         const Vec2i finish = selection.finish();
 
-        for (int row = start.y; row <= finish.y; row++) {
+        switch (selection.get_shape()) {
+            case SelectionShape::TEXT_LIKE: {
+                for (int row = start.y; row <= finish.y; row++) {
+                    int start_col = (row == start.y)? start.x: 0;
+                    int fin_col = (row == finish.y)? finish.x: text.line_width(row)+1;
 
-            int start_col = (row == start.y)? start.x: 0;
-            int fin_col = (row == finish.y)? finish.x: text.line_width(row)+1;
+                    Vec2i pen = camera_project_point(nullptr, {start_col, row}, camera_pos);
 
-            Vec2i pen = camera_project_point(nullptr, {start_col, row}, camera_pos);
+                    int width = fin_col - start_col;
+                    SDL_Rect selection_rect = {
+                        pen.x * font_width() * FONT_SCALE,
+                        pen.y * font_height() * FONT_SCALE,
+                        width * font_width() * FONT_SCALE,
+                        font_height() * FONT_SCALE
+                    };
 
-            int width = fin_col - start_col;
-            SDL_Rect selection_rect = {
-                pen.x * font_width() * FONT_SCALE,
-                pen.y * font_height() * FONT_SCALE,
-                width * font_width() * FONT_SCALE,
-                font_height() * FONT_SCALE
-            };
+                    sdli(SDL_RenderFillRect(renderer_impl_, &selection_rect));
+                }
+                break;
+            }
+            case SelectionShape::RECTANGULAR: {
+                for (int row = start.y; row <= finish.y; row++) {
+                    int start_col = start.x;
+                    int fin_col = finish.x;
 
-            sdli(SDL_RenderFillRect(renderer_impl_, &selection_rect));
+                    if (fin_col < start_col) {
+                        std::swap(start_col, fin_col);
+                    }
+
+                    Vec2i pen = camera_project_point(nullptr, {start_col, row}, camera_pos);
+
+                    int width = fin_col - start_col;
+                    SDL_Rect selection_rect = {
+                        pen.x * font_width() * FONT_SCALE,
+                        pen.y * font_height() * FONT_SCALE,
+                        width * font_width() * FONT_SCALE,
+                        font_height() * FONT_SCALE
+                    };
+
+                    sdli(SDL_RenderFillRect(renderer_impl_, &selection_rect));
+                }
+                break;
+            }
+            default:
+                Logger::instance().critical("Cannot draw selection of unknown shape");
         }
-
-
     }
 }
 

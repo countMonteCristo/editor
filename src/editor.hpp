@@ -35,7 +35,7 @@ public:
     void render();
 
     void set_selection_status(SelectionState s);
-    void update_selection(bool shift_down);
+    void update_selection(bool shift_down, bool shape_key_down);
     void selection_to_clipboard();
     void insert_from_clipboard();
     void cut_to_clipboard();

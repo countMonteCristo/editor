@@ -19,3 +19,10 @@ bool Keyboard::ctrl_pressed() {
                         static_cast<bool>(keyboard[SDL_SCANCODE_RCTRL]);
     return ctrl_down;
 }
+
+bool Keyboard::alt_pressed() {
+    const Uint8* keyboard = sdlp(SDL_GetKeyboardState(nullptr));
+    bool alt_down = static_cast<bool>(keyboard[SDL_SCANCODE_LALT]) || \
+                        static_cast<bool>(keyboard[SDL_SCANCODE_RALT]);
+    return alt_down;
+}

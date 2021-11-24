@@ -8,13 +8,13 @@
 const char* ss_to_cstr(SelectionState s)
 {
     switch (s) {
-        case SELECTION_HIDDEN:
+        case SelectionState::HIDDEN:
             return "HIDDEN";
-        case SELECTION_STARTED:
+        case SelectionState::STARTED:
             return "STARTED";
-        case SELECTION_IN_PROGRESS:
+        case SelectionState::IN_PROGRESS:
             return "IN_PROGRESS";
-        case SELECTION_FINISHED:
+        case SelectionState::FINISHED:
             return "FINISHED";
         default:
             std::stringstream builder;
@@ -24,27 +24,51 @@ const char* ss_to_cstr(SelectionState s)
     }
 }
 
+
+// TODO: toggle selection state by pressing alt
+// TODO: think how to properly delete rectanglurly selected text
 std::string Selection::selected_text(const Text& text) {
-    Vec2i start, finish;
-    if ( begin().y <= end().y) {
-        start = begin();
-        finish = end();
-    } else {
-        start = end();
-        finish = begin();
-    }
+    Vec2i sel_start = start();
+    Vec2i sel_finish = finish();
 
     std::string data;
-    for (int row = start.y; row <= finish.y; row++) {
-        int start_col = (row == start.y)? start.x: 0;
-        int finish_col = (row == finish.y)? finish.x: text.line_width(row);
+    switch (get_shape()) {
+        case SelectionShape::TEXT_LIKE: {
+            for (int row = sel_start.y; row <= sel_finish.y; row++) {
+                int start_col = (row == sel_start.y)? sel_start.x: 0;
+                int finish_col = (row == sel_finish.y)? sel_finish.x: text.line_width(row);
 
-        for (int col = start_col; col < finish_col; col++) {
-            data += std::string(text.line_at({0, row})[col].c_str());
+                for (int col = start_col; col < finish_col; col++) {
+                    data += std::string(text.line_at({0, row})[col].c_str());
+                }
+                if (row < sel_finish.y) {
+                    data += '\n';
+                }
+            }
+            break;
         }
-        if (row < finish.y) {
-            data += '\n';
+        case SelectionShape::RECTANGULAR: {
+            for (int row = sel_start.y; row <= sel_finish.y; row++) {
+                int start_col = sel_start.x;
+                int finish_col = sel_finish.x;
+
+                if (start_col >= finish_col)
+                    std::swap(start_col, finish_col);
+
+                for (int col = start_col; col < finish_col; col++) {
+                    if (col < text.line_width(row))
+                        data += std::string(text.line_at({0, row})[col].c_str());
+                    else
+                        data += std::string(" ");
+                }
+                if (row < sel_finish.y) {
+                    data += '\n';
+                }
+            }
+            break;
         }
+        default:
+            Logger::instance().critical("Cannot get selected text of unknown selection shape");
     }
 
     return data;

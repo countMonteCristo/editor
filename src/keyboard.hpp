@@ -9,6 +9,7 @@ public:
 
     static bool shift_pressed();
     static bool ctrl_pressed();
+    static bool alt_pressed();
 };
 
 #endif // KEYBOARD_HPP_
