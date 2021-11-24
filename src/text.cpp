@@ -44,6 +44,20 @@ int Text::max_line_width() const {
     return static_cast<int>(max_line_width_);
 }
 
+const Vec2i Text::get_end(const Vec2i& start) const {
+    int last_line_index = total_lines() - 1;
+
+    assert(last_line_index >= 0);
+
+    int x = line_width(last_line_index);
+    if (last_line_index == 0) {
+        x += start.x;
+    }
+    int y = start.y + last_line_index;
+
+    return Vec2i(x, y);
+}
+
 void Text::_recalc_max_line_width() {
     max_line_width_ = 0;
     for (const auto& line: content_) {

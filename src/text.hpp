@@ -21,6 +21,8 @@ public:
     int max_line_width() const;
     const line_t& line_at(const Vec2i& pos) const { return content_[pos.y];}
 
+    const Vec2i get_end(const Vec2i& start) const;
+
     void resize(size_t nlines) { content_.resize(nlines); }
 
     Text& operator+=(const Text& t);

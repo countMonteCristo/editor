@@ -28,13 +28,13 @@ public:
     void save_to_file();
 
     void insert_text(const Vec2i& pos, const Text& text, bool remember=true);
-    void remove_text(Vec2i from, Vec2i to, bool remember=true);
+    void remove_text(Vec2i from, Vec2i to, bool selected, bool remember=true);
     void add_newline(const Vec2i& pos, bool remember=true);
     void remove_newline(const Vec2i& pos, bool remember=true);
 
     void log_items();
 
-    void undo();
+    const pItem_t& undo();
     void redo();
 private:
     void _recalc_max_line_width();

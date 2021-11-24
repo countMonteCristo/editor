@@ -100,7 +100,7 @@ void Document::insert_text(const Vec2i& pos, const Text& text, bool remember) {
     text_.insert_at(pos, text);
 }
 
-void Document::remove_text(Vec2i from, Vec2i to, bool remember) {
+void Document::remove_text(Vec2i from, Vec2i to, bool selected, bool remember) {
     if ( (from.y > to.y) || ((from.y == to.y) && (from.x > to.x)) ) {
         std::swap(from, to);
     }
@@ -108,7 +108,7 @@ void Document::remove_text(Vec2i from, Vec2i to, bool remember) {
     Text removed = text_.remove(from, to);
 
     if (remember) {
-        RemoveTextItem* item = new RemoveTextItem(from, removed);
+        RemoveTextItem* item = new RemoveTextItem(from, removed, selected);
         history_.push_back(item);
     }
 }
@@ -137,13 +137,13 @@ void Document::log_items() {
 }
 
 
-void Document::undo() {
+const pItem_t& Document::undo() {
     const pItem_t& item = history_.current_item();
-    if (!item) {
-        return;
+    if (item) {
+        item->undo(*this);
+        history_.dec();
     }
-    item->undo(*this);
-    history_.dec();
+    return item;
 }
 
 void Document::redo() {

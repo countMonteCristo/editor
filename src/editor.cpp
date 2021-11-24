@@ -221,7 +221,8 @@ void Editor::insert_text(const Vec2i& pos, const Text& text) {
 }
 
 void Editor::remove_text(Vec2i from, Vec2i to) {
-    doc_.remove_text(from, to);
+    bool selected = (selection_.get_state() != SELECTION_HIDDEN);
+    doc_.remove_text(from, to, selected);
 }
 
 void Editor::goto_space(bool forward) {
@@ -483,8 +484,17 @@ void Editor::log_debug_history() {
 
 
 void Editor::handle_undo() {
-    doc_.undo();
+    const pItem_t& item = doc_.undo();
     _adjust_cursor();
+
+    if (item && item->selected()) {
+        const Vec2i begin = item->pos();
+        const Vec2i end = item->end();
+
+        selection_.set_begin(begin);
+        selection_.set_end(end);
+        selection_.set_state(SELECTION_FINISHED);
+    }
 }
 
 void Editor::handle_redo() {

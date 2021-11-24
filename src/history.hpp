@@ -20,7 +20,7 @@ typedef std::unique_ptr<HistoryItem> pItem_t;
 
 class HistoryItem {
 public:
-    HistoryItem(const Vec2i& pos, const Text& text);
+    HistoryItem(const Vec2i& pos, const Text& text, bool selected);
     virtual ~HistoryItem() {}
 
     virtual void log_debug(std::stringstream& builder) = 0;
@@ -32,27 +32,31 @@ public:
     uint32_t created() const {return time_;}
 
     const Vec2i& pos() const { return pos_; }
+    const Vec2i end() const { return text_.get_end(pos_); }
     const Text& text() const { return text_; }
+
+    bool selected() const { return selected_; }
 protected:
     void _log_text(std::stringstream& builder);
 protected:
     Vec2i pos_;
     Text text_;
     uint32_t time_;
+    bool selected_;
 
     static const uint32_t max_time_delta_ms = 1000;
 };
 
 class HeadItem: public HistoryItem {
 public:
-    HeadItem() : HistoryItem(Vec2i(0, 0), Text()) {}
+    HeadItem() : HistoryItem(Vec2i(0, 0), Text(), false) {}
     virtual void log_debug(std::stringstream& builder) { builder << "HeadItem[]"; }
     virtual bool squash(const HistoryItem*) { return false; }
 };
 
 class AddTextItem: public HistoryItem {
 public:
-    AddTextItem(const Vec2i& pos, const Text& text) : HistoryItem(pos, text) {}
+    AddTextItem(const Vec2i& pos, const Text& text) : HistoryItem(pos, text, false) {}
     virtual ~AddTextItem() {}
 
     virtual void undo(Document& doc) const;
@@ -67,7 +71,7 @@ private:
 
 class AddNewLineItem: public HistoryItem {
 public:
-    AddNewLineItem(const Vec2i& pos) : HistoryItem(pos, Text()) {}
+    AddNewLineItem(const Vec2i& pos) : HistoryItem(pos, Text(), false) {}
     virtual ~AddNewLineItem() {}
 
     virtual void undo(Document& doc) const;
@@ -80,7 +84,7 @@ private:
 
 class RemoveNewLineItem: public HistoryItem {
 public:
-    RemoveNewLineItem(const Vec2i& pos) : HistoryItem(pos, Text()) {}
+    RemoveNewLineItem(const Vec2i& pos) : HistoryItem(pos, Text(), false) {}
     virtual ~RemoveNewLineItem() {}
 
     virtual void undo(Document& doc) const;
@@ -94,7 +98,7 @@ private:
 
 class RemoveTextItem: public HistoryItem {
 public:
-    RemoveTextItem(const Vec2i& pos, const Text& text) : HistoryItem(pos, text) {}
+    RemoveTextItem(const Vec2i& pos, const Text& text, bool selected) : HistoryItem(pos, text, selected) {}
     virtual ~RemoveTextItem() {}
 
     virtual void undo(Document& doc) const;
