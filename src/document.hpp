@@ -27,15 +27,15 @@ public:
     void load_from_file(const std::string& filepath);
     void save_to_file();
 
-    void insert_text(const Vec2i& pos, const Text& text, bool remember=true);
-    void remove_text(Vec2i from, Vec2i to, bool selected, bool remember=true);
-    void add_newline(const Vec2i& pos, bool remember=true);
-    void remove_newline(const Vec2i& pos, bool remember=true);
+    void insert_text(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool remember=true);
+    void remove_text(Vec2i from, Vec2i to, const Vec2i& cursor, bool selected, bool remember=true);
+    void add_newline(const Vec2i& pos, const Vec2i& cursor, bool remember=true);
+    void remove_newline(const Vec2i& pos, const Vec2i& cursor, bool remember=true);
 
     void log_items();
 
     const pItem_t& undo();
-    void redo();
+    const pItem_t& redo();
 private:
     void _recalc_max_line_width();
 

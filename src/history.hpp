@@ -18,9 +18,10 @@ class HistoryItem;
 typedef std::unique_ptr<HistoryItem> pItem_t;
 
 
+// TODO: we need to save both beginning and ending cursor position for every HistoryItem
 class HistoryItem {
 public:
-    HistoryItem(const Vec2i& pos, const Text& text, bool selected);
+    HistoryItem(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool selected);
     virtual ~HistoryItem() {}
 
     virtual void log_debug(std::stringstream& builder) = 0;
@@ -32,6 +33,7 @@ public:
     uint32_t created() const {return time_;}
 
     const Vec2i& pos() const { return pos_; }
+    const Vec2i& cursor() const { return cursor_pos_; }
     const Vec2i end() const { return text_.get_end(pos_); }
     const Text& text() const { return text_; }
 
@@ -43,20 +45,21 @@ protected:
     Text text_;
     uint32_t time_;
     bool selected_;
+    Vec2i cursor_pos_;
 
     static const uint32_t max_time_delta_ms = 1000;
 };
 
 class HeadItem: public HistoryItem {
 public:
-    HeadItem() : HistoryItem(Vec2i(0, 0), Text(), false) {}
+    HeadItem() : HistoryItem(Vec2i(0, 0), Text(), Vec2i(0, 0), false) {}
     virtual void log_debug(std::stringstream& builder) { builder << "HeadItem[]"; }
     virtual bool squash(const HistoryItem*) { return false; }
 };
 
 class AddTextItem: public HistoryItem {
 public:
-    AddTextItem(const Vec2i& pos, const Text& text) : HistoryItem(pos, text, false) {}
+    AddTextItem(const Vec2i& pos, const Text& text, const Vec2i& cursor) : HistoryItem(pos, text, cursor, false) {}
     virtual ~AddTextItem() {}
 
     virtual void undo(Document& doc) const;
@@ -71,7 +74,7 @@ private:
 
 class AddNewLineItem: public HistoryItem {
 public:
-    AddNewLineItem(const Vec2i& pos) : HistoryItem(pos, Text(), false) {}
+    AddNewLineItem(const Vec2i& pos, const Vec2i& cursor) : HistoryItem(pos, Text(), cursor, false) {}
     virtual ~AddNewLineItem() {}
 
     virtual void undo(Document& doc) const;
@@ -84,7 +87,7 @@ private:
 
 class RemoveNewLineItem: public HistoryItem {
 public:
-    RemoveNewLineItem(const Vec2i& pos) : HistoryItem(pos, Text(), false) {}
+    RemoveNewLineItem(const Vec2i& pos, const Vec2i& cursor) : HistoryItem(pos, Text(), cursor, false) {}
     virtual ~RemoveNewLineItem() {}
 
     virtual void undo(Document& doc) const;
@@ -98,7 +101,7 @@ private:
 
 class RemoveTextItem: public HistoryItem {
 public:
-    RemoveTextItem(const Vec2i& pos, const Text& text, bool selected) : HistoryItem(pos, text, selected) {}
+    RemoveTextItem(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool selected) : HistoryItem(pos, text, cursor, selected) {}
     virtual ~RemoveTextItem() {}
 
     virtual void undo(Document& doc) const;

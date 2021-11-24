@@ -217,12 +217,12 @@ void Editor::select_all() {
 }
 
 void Editor::insert_text(const Vec2i& pos, const Text& text) {
-    doc_.insert_text(pos, text);
+    doc_.insert_text(pos, text, cursor_.text_pos());
 }
 
 void Editor::remove_text(Vec2i from, Vec2i to) {
     bool selected = (selection_.get_state() != SELECTION_HIDDEN);
-    doc_.remove_text(from, to, selected);
+    doc_.remove_text(from, to, cursor_.text_pos(), selected);
 }
 
 void Editor::goto_space(bool forward) {
@@ -266,7 +266,7 @@ void Editor::add_new_line() {
     }
 
     const Vec2i& pos = cursor_pos();
-    doc_.add_newline(pos);
+    doc_.add_newline(pos, pos);
     _update_max_line_no_chars_width();
 
     move_cursor(-pos.x, 1);
@@ -284,7 +284,7 @@ void Editor::handle_backspace() {
         } else {
             if ( pos.y > 0 ) {
                 int prev_line_width = doc_.line_width(pos.y-1);
-                doc_.remove_newline({prev_line_width, pos.y-1});
+                doc_.remove_newline({prev_line_width, pos.y-1}, pos);
                 _update_max_line_no_chars_width();
                 move_cursor({prev_line_width, -1});
             }
@@ -305,7 +305,7 @@ void Editor::handle_delete() {
             remove_text(pos, pos + Vec2i(1, 0));
         } else {
             if ( pos.y < doc_.total_lines() - 1 ) {
-                doc_.remove_newline(cursor_pos());
+                doc_.remove_newline(cursor_pos(), cursor_pos());
                 _update_max_line_no_chars_width();
             }
         }
@@ -317,6 +317,7 @@ void Editor::handle_delete() {
     }
 }
 
+// TODO: selection while moving left is broken
 void Editor::handle_keyboard_move_pressed() {
     const Uint8* keyboard = sdlp(SDL_GetKeyboardState(nullptr));
 
@@ -486,20 +487,34 @@ void Editor::log_debug_history() {
 void Editor::handle_undo() {
     selection_.set_state(SELECTION_HIDDEN);
     const pItem_t& item = doc_.undo();
+    const Vec2i& cursor_pos = cursor_.text_pos();
+    Vec2i delta(0, 0);
 
-    if (item && item->selected()) {
-        const Vec2i begin = item->pos();
-        const Vec2i end = item->end();
+    if ( item ) {
+        if ( item->selected()) {
+            const Vec2i begin = item->pos();
+            const Vec2i end = item->end();
 
-        selection_.set_begin(begin);
-        selection_.set_end(end);
-        selection_.set_state(SELECTION_FINISHED);
+            selection_.set_begin(begin);
+            selection_.set_end(end);
+            selection_.set_state(SELECTION_FINISHED);
+        }
+        delta = item->cursor() - cursor_pos;
     }
-    _adjust_cursor();
+    move_cursor(delta);
+    // _adjust_cursor();
 }
 
 void Editor::handle_redo() {
     selection_.set_state(SELECTION_HIDDEN);
-    doc_.redo();
-    _adjust_cursor();
+    const pItem_t& item = doc_.redo();
+    const Vec2i& cursor_pos = cursor_.text_pos();
+    Vec2i delta(0, 0);
+
+    if (item) {
+        delta = item->cursor() - cursor_pos;
+    }
+
+    move_cursor(delta);
+    // _adjust_cursor();
 }

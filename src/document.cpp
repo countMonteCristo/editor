@@ -92,15 +92,15 @@ void Document::save_to_file() {
 }
 
 
-void Document::insert_text(const Vec2i& pos, const Text& text, bool remember) {
+void Document::insert_text(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool remember) {
     if (remember) {
-        AddTextItem* item = new AddTextItem(pos, text);
+        AddTextItem* item = new AddTextItem(pos, text, cursor);
         history_.push_back(item);
     }
     text_.insert_at(pos, text);
 }
 
-void Document::remove_text(Vec2i from, Vec2i to, bool selected, bool remember) {
+void Document::remove_text(Vec2i from, Vec2i to, const Vec2i& cursor, bool selected, bool remember) {
     if ( (from.y > to.y) || ((from.y == to.y) && (from.x > to.x)) ) {
         std::swap(from, to);
     }
@@ -108,25 +108,25 @@ void Document::remove_text(Vec2i from, Vec2i to, bool selected, bool remember) {
     Text removed = text_.remove(from, to);
 
     if (remember) {
-        RemoveTextItem* item = new RemoveTextItem(from, removed, selected);
+        RemoveTextItem* item = new RemoveTextItem(from, removed, cursor, selected);
         history_.push_back(item);
     }
 }
 
-void Document::add_newline(const Vec2i& pos, bool remember) {
+void Document::add_newline(const Vec2i& pos, const Vec2i& cursor, bool remember) {
     text_.add_newline(pos);
 
     if (remember) {
-        AddNewLineItem *item = new AddNewLineItem(pos);
+        AddNewLineItem *item = new AddNewLineItem(pos, cursor);
         history_.push_back(item);
     }
 }
 
-void Document::remove_newline(const Vec2i& pos, bool remember) {
+void Document::remove_newline(const Vec2i& pos, const Vec2i& cursor, bool remember) {
     text_.remove_newline(pos);
 
     if (remember) {
-        RemoveNewLineItem *item = new RemoveNewLineItem(pos);
+        RemoveNewLineItem *item = new RemoveNewLineItem(pos, cursor);
         history_.push_back(item);
     }
 }
@@ -146,11 +146,11 @@ const pItem_t& Document::undo() {
     return item;
 }
 
-void Document::redo() {
+const pItem_t& Document::redo() {
     const pItem_t& item = history_.next_item();
-    if (!item) {
-        return;
+    if (item) {
+        item->redo(*this);
+        history_.inc();
     }
-    item->redo(*this);
-    history_.inc();
+    return item;
 }

@@ -6,8 +6,8 @@
 #include <sstream>
 
 
-HistoryItem::HistoryItem(const Vec2i& pos, const Text& text, bool selected)
-    : pos_(pos), text_(text), selected_(selected)
+HistoryItem::HistoryItem(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool selected)
+    : pos_(pos), text_(text), selected_(selected), cursor_pos_(cursor)
 {
     time_ = SDL_GetTicks();
 }
@@ -106,24 +106,31 @@ void HistoryItem::_log_text(std::stringstream& builder) {
 void AddTextItem::log_debug(std::stringstream& builder) {
     builder << "AddText[pos=" << pos() << ", text=";
     _log_text(builder);
-    builder <<", selected=" << selected_;
+    builder << ", selected=" << selected_;
+    builder << ", c=" << cursor();
     builder << "]";
 }
 
 void RemoveTextItem::log_debug(std::stringstream& builder) {
     builder << "RemoveText[pos=" << pos() << ", text=";
     _log_text(builder);
-    builder <<", selected=" << selected_;
+    builder << ", selected=" << selected_;
+    builder << ", c=" << cursor();
     builder << "]";
 }
 
 void AddNewLineItem::log_debug(std::stringstream& builder) {
     builder << "AddNewLine[pos=" << pos();
-    builder <<", selected=" << selected_ << "]";
+    builder << ", selected=" << selected_;
+    builder << ", c=" << cursor();
+    builder << "]";
 }
 
 void RemoveNewLineItem::log_debug(std::stringstream& builder) {
-    builder << "RemoveNewLine[pos=" << pos() << "]";
+    builder << "RemoveNewLine[pos=" << pos();
+    builder << ", selected=" << selected_;
+    builder << ", c=" << cursor();
+    builder << "]";
 }
 
 
@@ -132,11 +139,11 @@ void AddTextItem::undo(Document& doc) const {
     if (text_.total_lines() == 1) {
         to.x += pos_.x;
     }
-    doc.remove_text(pos_, to, false, false);
+    doc.remove_text(pos_, to, cursor_pos_, false, false);
 }
 
 void AddTextItem::redo(Document& doc) const {
-    doc.insert_text(pos_, text_, false);
+    doc.insert_text(pos_, text_, cursor_pos_, false);
 }
 
 bool AddTextItem::squash(const HistoryItem* other) {
@@ -165,7 +172,7 @@ bool AddTextItem::squash(const HistoryItem* other) {
 }
 
 void RemoveTextItem::undo(Document& doc) const {
-    doc.insert_text(pos_, text_, false);
+    doc.insert_text(pos_, text_, cursor_pos_, false);
 }
 
 void RemoveTextItem::redo(Document& doc) const {
@@ -173,7 +180,7 @@ void RemoveTextItem::redo(Document& doc) const {
     if (text_.total_lines() == 1) {
         to.x += pos_.x;
     }
-    doc.remove_text(pos_, to, false, false);
+    doc.remove_text(pos_, to, cursor_pos_, false, false);
 }
 
 bool RemoveTextItem::squash(const HistoryItem* other) {
@@ -209,18 +216,18 @@ bool RemoveTextItem::squash(const HistoryItem* other) {
 
 
 void AddNewLineItem::undo(Document &doc) const {
-    doc.remove_newline(pos_, false);
+    doc.remove_newline(pos_, cursor_pos_, false);
 }
 
 void AddNewLineItem::redo(Document &doc) const {
-    doc.add_newline(pos_, false);
+    doc.add_newline(pos_, cursor_pos_, false);
 }
 
 
 void RemoveNewLineItem::undo(Document &doc) const {
-    doc.add_newline(pos_, false);
+    doc.add_newline(pos_, cursor_pos_, false);
 }
 
 void RemoveNewLineItem::redo(Document &doc) const {
-    doc.remove_newline(pos_, false);
+    doc.remove_newline(pos_, cursor_pos_, false);
 }
