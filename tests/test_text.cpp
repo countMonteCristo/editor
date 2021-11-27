@@ -100,7 +100,7 @@ TEST_F(TextFixture, TextInsertMultiLine) {
 
     int inserted_line_width = text.line_width(pos.y);
 
-    text.insert_at(pos, inserted);
+    text.insert_at(pos, inserted, SelectionShape::TEXT_LIKE);
 
     // total_lines shoul be equal to (#_of_\n + 1)
     EXPECT_EQ(text.total_lines(), original_lines_count + inserted.total_lines() - 1);
@@ -126,7 +126,7 @@ TEST_F(TextFixture, TestInsertSingleLine) {
 
     int inserted_line_width = text.line_width(pos.y);
 
-    text.insert_at(pos, inserted);
+    text.insert_at(pos, inserted, SelectionShape::TEXT_LIKE);
 
     // total_lines shoul be equal to (#_of_\n + 1)
     EXPECT_EQ(text.total_lines(), original_lines_count + inserted.total_lines() - 1);
@@ -149,7 +149,7 @@ TEST_F(TextFixture, TestRemoveSingleLine) {
     std::string first_removed = text.line_at(from).at(from.x).ch();
     std::string last_removed = text.line_at(to).at(to.x-1).ch();
 
-    Text removed = text.remove(from, to);
+    Text removed = text.remove(from, to, SelectionShape::TEXT_LIKE);
 
     EXPECT_EQ(text.total_lines(), original_total - (to.y - from.y));
     EXPECT_EQ(text.line_width(from.y), original_line_width_at_removing_from - (to.x - from.x));
@@ -174,7 +174,7 @@ TEST_F(TextFixture, TestRemoveMultiLine) {
     std::string first_removed = text.line_at(from).at(from.x).ch();
     std::string last_removed = text.line_at(to).at(to.x-1).ch();
 
-    Text removed = text.remove(from, to);
+    Text removed = text.remove(from, to, SelectionShape::TEXT_LIKE);
     int removed_total = to.y - from.y + 1;
 
     EXPECT_EQ(text.total_lines(), original_total - (to.y - from.y));
