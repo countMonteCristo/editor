@@ -41,3 +41,14 @@ SDL_Rect resize_to_char_size(const SDL_Rect& r, int w, int h) {
         r.h / (h * FONT_SCALE)
     };
 }
+
+const std::string selection_shape_as_str(SelectionShape shape) {
+    switch (shape) {
+        case SelectionShape::NONE:          return "NONE";
+        case SelectionShape::TEXT_LIKE:     return "TEXT_LIKE";
+        case SelectionShape::RECTANGULAR:   return "RECTANGULAR";
+        default:
+            Logger::instance().critical(std::string("Unknown selection shape in ") + __func__);
+    }
+    return "UNHANDLED_SELECTION_SHAPE";
+}

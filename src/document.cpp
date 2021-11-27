@@ -92,23 +92,23 @@ void Document::save_to_file() {
 }
 
 
-void Document::insert_text(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool remember) {
+void Document::insert_text(const Vec2i& pos, const Text& text, const Vec2i& cursor, SelectionShape shape, bool remember) {
     if (remember) {
-        AddTextItem* item = new AddTextItem(pos, text, cursor);
+        AddTextItem* item = new AddTextItem(pos, text, cursor, shape);
         history_.push_back(item);
     }
-    text_.insert_at(pos, text);
+    text_.insert_at(pos, text, shape);
 }
 
-void Document::remove_text(Vec2i from, Vec2i to, const Vec2i& cursor, bool selected, bool remember) {
+void Document::remove_text(Vec2i from, Vec2i to, const Vec2i& cursor, SelectionShape shape, bool remember) {
     if ( (from.y > to.y) || ((from.y == to.y) && (from.x > to.x)) ) {
         std::swap(from, to);
     }
 
-    Text removed = text_.remove(from, to);
+    Text removed = text_.remove(from, to, shape);
 
     if (remember) {
-        RemoveTextItem* item = new RemoveTextItem(from, removed, cursor, selected);
+        RemoveTextItem* item = new RemoveTextItem(from, removed, cursor, shape);
         history_.push_back(item);
     }
 }

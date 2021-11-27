@@ -6,8 +6,8 @@
 #include <sstream>
 
 
-HistoryItem::HistoryItem(const Vec2i& pos, const Text& text, const Vec2i& cursor, bool selected)
-    : pos_(pos), text_(text), selected_(selected), cursor_pos_(cursor)
+HistoryItem::HistoryItem(const Vec2i& pos, const Text& text, const Vec2i& cursor, SelectionShape shape)
+    : pos_(pos), text_(text), selection_shape_(shape), cursor_pos_(cursor)
 {
     time_ = SDL_GetTicks();
 }
@@ -106,7 +106,7 @@ void HistoryItem::_log_text(std::stringstream& builder) {
 void AddTextItem::log_debug(std::stringstream& builder) {
     builder << "AddText[pos=" << pos() << ", text=";
     _log_text(builder);
-    builder << ", selected=" << selected_;
+    builder << ", sel_shape=" << selection_shape_as_str(selection_shape_);
     builder << ", c=" << cursor();
     builder << "]";
 }
@@ -114,21 +114,21 @@ void AddTextItem::log_debug(std::stringstream& builder) {
 void RemoveTextItem::log_debug(std::stringstream& builder) {
     builder << "RemoveText[pos=" << pos() << ", text=";
     _log_text(builder);
-    builder << ", selected=" << selected_;
+    builder << ", sel_shape=" << selection_shape_as_str(selection_shape_);
     builder << ", c=" << cursor();
     builder << "]";
 }
 
 void AddNewLineItem::log_debug(std::stringstream& builder) {
     builder << "AddNewLine[pos=" << pos();
-    builder << ", selected=" << selected_;
+    builder << ", sel_shape=" << selection_shape_as_str(selection_shape_);
     builder << ", c=" << cursor();
     builder << "]";
 }
 
 void RemoveNewLineItem::log_debug(std::stringstream& builder) {
     builder << "RemoveNewLine[pos=" << pos();
-    builder << ", selected=" << selected_;
+    builder << ", sel_shape=" << selection_shape_as_str(selection_shape_);
     builder << ", c=" << cursor();
     builder << "]";
 }
@@ -139,11 +139,11 @@ void AddTextItem::undo(Document& doc) const {
     if (text_.total_lines() == 1) {
         to.x += pos_.x;
     }
-    doc.remove_text(pos_, to, cursor_pos_, false, false);
+    doc.remove_text(pos_, to, cursor_pos_, selection_shape_, false);
 }
 
 void AddTextItem::redo(Document& doc) const {
-    doc.insert_text(pos_, text_, cursor_pos_, false);
+    doc.insert_text(pos_, text_, cursor_pos_, selection_shape_, false);
 }
 
 bool AddTextItem::squash(const HistoryItem* other) {
@@ -172,7 +172,7 @@ bool AddTextItem::squash(const HistoryItem* other) {
 }
 
 void RemoveTextItem::undo(Document& doc) const {
-    doc.insert_text(pos_, text_, cursor_pos_, false);
+    doc.insert_text(pos_, text_, cursor_pos_, selection_shape_, false);
 }
 
 void RemoveTextItem::redo(Document& doc) const {
@@ -180,7 +180,7 @@ void RemoveTextItem::redo(Document& doc) const {
     if (text_.total_lines() == 1) {
         to.x += pos_.x;
     }
-    doc.remove_text(pos_, to, cursor_pos_, false, false);
+    doc.remove_text(pos_, to, cursor_pos_, selection_shape_, false);
 }
 
 bool RemoveTextItem::squash(const HistoryItem* other) {

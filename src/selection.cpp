@@ -24,9 +24,6 @@ const char* ss_to_cstr(SelectionState s)
     }
 }
 
-
-// TODO: toggle selection state by pressing alt
-// TODO: think how to properly delete rectanglurly selected text
 std::string Selection::selected_text(const Text& text) {
     Vec2i sel_start = start();
     Vec2i sel_finish = finish();
@@ -58,8 +55,8 @@ std::string Selection::selected_text(const Text& text) {
                 for (int col = start_col; col < finish_col; col++) {
                     if (col < text.line_width(row))
                         data += std::string(text.line_at({0, row})[col].c_str());
-                    else
-                        data += std::string(" ");
+                    // else
+                    //     data += std::string(" ");
                 }
                 if (row < sel_finish.y) {
                     data += '\n';

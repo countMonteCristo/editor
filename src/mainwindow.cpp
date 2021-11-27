@@ -78,9 +78,7 @@ void MainWindow::show() {
         // TODO: select line on triple-click
         // TODO: multiple cursors
         // TODO: command line for searching, replacing, etc
-        // TODO: Ctrl-X for cut selected text
         // TODO: menu bar
-        // TODO: save selection state in history items
 
         while(SDL_PollEvent(&event) != 0) {
             bool control_down = Keyboard::ctrl_pressed();
@@ -112,6 +110,10 @@ void MainWindow::show() {
                 }
                 case SDL_KEYDOWN: {
                     switch (event.key.keysym.sym) {
+                        case SDLK_LALT: case SDLK_RALT: {
+                            editor_.toggle_selection_shape();
+                            break;
+                        }
                         case SDLK_c: {
                             if (control_down)
                                 editor_.selection_to_clipboard();

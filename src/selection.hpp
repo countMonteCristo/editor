@@ -14,11 +14,6 @@ enum class SelectionState {
     FINISHED,
 };
 
-enum class SelectionShape {
-    TEXT_LIKE = 0,
-    RECTANGULAR,
-};
-
 const char* ss_to_cstr(SelectionState s);
 
 class Selection {

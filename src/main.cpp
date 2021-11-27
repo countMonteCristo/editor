@@ -10,7 +10,6 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-// TODO: add googletest unittests
 
 int main(int argc, const char* argv[]) {
     Settings::instance().init("editor.conf");
