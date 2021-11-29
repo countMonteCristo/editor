@@ -1,5 +1,7 @@
 #include "text.hpp"
 
+#include "logger.hpp"
+
 
 Text::Text() {
     content_.resize(1);
@@ -42,6 +44,32 @@ int Text::max_line_width() const {
         return 0;
     }
     return static_cast<int>(max_line_width_);
+}
+
+const Vec2i Text::get_end(const Vec2i& start, SelectionShape shape) const {
+    int last_line_index = total_lines() - 1;
+    assert(last_line_index >= 0);
+
+    int x, y;
+    switch (shape) {
+        case SelectionShape::TEXT_LIKE: {
+            x = line_width(last_line_index);
+            if (last_line_index == 0) {
+                x += start.x;
+            }
+            y = start.y + last_line_index;
+            break;
+        }
+        case SelectionShape::RECTANGULAR: {
+            x = start.x + max_line_width();
+            y = start.y + total_lines() - 1;
+            break;
+        }
+        default:
+            Logger::instance().critical(std::string("Unhandled selection shape in ") + __func__);
+    }
+
+    return Vec2i(x, y);
 }
 
 void Text::_recalc_max_line_width() {
@@ -91,61 +119,107 @@ std::pair<Text, Text> Text::split(const Vec2i& pos) {
     return std::make_pair(Text(first), Text(second));
 }
 
-void Text::insert_at(const Vec2i& pos, const Text& text) {
+void Text::insert_at(const Vec2i& pos, const Text& text, SelectionShape shape) {
     const auto& raw = text.content();
 
     if (!raw.size()) {
         return;
     }
 
-    line_t rem;
-    line_t& line = content_[pos.y];
+    switch (shape) {
+        case SelectionShape::TEXT_LIKE: {
+            line_t rem;
+            line_t& line = content_[pos.y];
 
-    // move text to the right of the cursor to temporary buffer
-    std::move(line.begin() + pos.x, line.end(), std::back_inserter(rem));
-    line.erase(line.begin() + pos.x, line.end());
+            // move text to the right of the cursor to temporary buffer
+            std::move(line.begin() + pos.x, line.end(), std::back_inserter(rem));
+            line.erase(line.begin() + pos.x, line.end());
 
-    // insert first line of `text` next to cursor
-    line.insert(line.end(), raw[0].begin(), raw[0].end());
+            // insert first line of `text` next to cursor
+            line.insert(line.end(), raw[0].begin(), raw[0].end());
 
-    // insert all lines starting from second one
-    auto it = content_.begin() + pos.y + 1;
-    content_.insert(it, raw.begin()+1, raw.end());
+            // insert all lines starting from second one
+            auto it = content_.begin() + pos.y + 1;
+            content_.insert(it, raw.begin()+1, raw.end());
 
-    // insert text from tempropary buffer
-    auto& last_line = content_[pos.y + raw.size() - 1];
-    last_line.insert(last_line.end(), rem.begin(), rem.end());
+            // insert text from tempropary buffer
+            auto& last_line = content_[pos.y + raw.size() - 1];
+            last_line.insert(last_line.end(), rem.begin(), rem.end());
+            break;
+        }
+        case SelectionShape::RECTANGULAR: {
+            int start_col = pos.x;
+            int finish_row = pos.y + text.total_lines() - 1;
+            for (int row=pos.y; row <= finish_row; row++) {
+                line_t& line = content_[row];
+                int actual_start_col = std::min(line_width(row)-1, start_col);
+                int text_row = row - pos.y;
+                line.insert(line.begin() + actual_start_col, raw[text_row].begin(), raw[text_row].end());
+            }
+            break;
+        }
+        default:
+            Logger::instance().critical(std::string("Unhandled selection shape in ") + __func__);
+    }
+
 
     _recalc_max_line_width();
 }
 
-Text Text::remove(const Vec2i& from, const Vec2i& to) {
+Text Text::remove(const Vec2i& from, const Vec2i& to, SelectionShape shape) {
     content_t deleted_text;
-    line_t first_deleted_line, last_deleted_line;
 
-    int dy = to.y - from.y;
+    switch (shape) {
+        case SelectionShape::TEXT_LIKE: {
+            line_t first_deleted_line, last_deleted_line;
 
-    line_t rem;
-    line_t& start = content_[from.y];
-    line_t& finish = content_[to.y];
+            int dy = to.y - from.y;
 
-    if (dy == 0) {
-        std::move(finish.begin() + from.x, finish.begin() + to.x, std::back_inserter(last_deleted_line));
-        finish.erase(finish.begin() + from.x, finish.begin() + to.x);
-        deleted_text.push_back(last_deleted_line);
-    } else {
-        std::copy(start.begin() + from.x, start.end(), std::back_inserter(first_deleted_line));
-        deleted_text.push_back(first_deleted_line);
-        std::copy(content_.begin() + from.y + 1, content_.begin() + to.y, std::back_inserter(deleted_text));
-        std::copy(finish.begin(), finish.begin() + to.x, std::back_inserter(last_deleted_line));
-        deleted_text.push_back(last_deleted_line);
+            line_t rem;
+            line_t& start = content_[from.y];
+            line_t& finish = content_[to.y];
 
-        std::move(finish.begin() + to.x, finish.end(), std::back_inserter(rem));
-        content_.erase(content_.begin() + from.y + 1, content_.begin() + to.y + 1);
-        start.erase(start.begin() + from.x, start.end());
-        start.insert(start.end(), rem.begin(), rem.end());
+            if (dy == 0) {
+                std::move(finish.begin() + from.x, finish.begin() + to.x, std::back_inserter(last_deleted_line));
+                finish.erase(finish.begin() + from.x, finish.begin() + to.x);
+                deleted_text.push_back(last_deleted_line);
+            } else {
+                std::copy(start.begin() + from.x, start.end(), std::back_inserter(first_deleted_line));
+                deleted_text.push_back(first_deleted_line);
+                std::copy(content_.begin() + from.y + 1, content_.begin() + to.y, std::back_inserter(deleted_text));
+                std::copy(finish.begin(), finish.begin() + to.x, std::back_inserter(last_deleted_line));
+                deleted_text.push_back(last_deleted_line);
+
+                std::move(finish.begin() + to.x, finish.end(), std::back_inserter(rem));
+                content_.erase(content_.begin() + from.y + 1, content_.begin() + to.y + 1);
+                start.erase(start.begin() + from.x, start.end());
+                start.insert(start.end(), rem.begin(), rem.end());
+            }
+            break;
+        }
+        case SelectionShape::RECTANGULAR: {
+            int start_col = from.x;
+            int finish_col = to.x;
+            if (start_col > finish_col)
+                std::swap(start_col, finish_col);
+            int finish_row = std::min(to.y, total_lines()-1);
+            for (int row=from.y; row <= finish_row; row++) {
+                line_t line;
+                if (start_col >= line_width(row)) {
+                    deleted_text.push_back(line);
+                    continue;
+                }
+                int actual_finish_col = std::min(line_width(row)-1, finish_col);
+                line_t& cur = content_[row];
+                std::move(cur.begin() + start_col, cur.begin() + actual_finish_col, std::back_inserter(line));
+                cur.erase(cur.begin() + start_col, cur.begin() + actual_finish_col);
+                deleted_text.push_back(line);
+            }
+            break;
+        }
+        default:
+            Logger::instance().critical(std::string("Unhandled selection shape in ") +  __func__);
     }
-
     _recalc_max_line_width();
 
     return Text(deleted_text);

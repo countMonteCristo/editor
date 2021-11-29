@@ -7,18 +7,18 @@
 #include <cassert>
 
 
-enum SelectionState {
-    SELECTION_HIDDEN = 0,
-    SELECTION_STARTED,
-    SELECTION_IN_PROGRESS,
-    SELECTION_FINISHED,
+enum class SelectionState {
+    HIDDEN = 0,
+    STARTED,
+    IN_PROGRESS,
+    FINISHED,
 };
 
 const char* ss_to_cstr(SelectionState s);
 
 class Selection {
 public:
-    explicit Selection() : state_(SELECTION_HIDDEN) {}
+    explicit Selection() : state_(SelectionState::HIDDEN), shape_(SelectionShape::TEXT_LIKE) {}
     ~Selection() {}
 
     const Vec2i& begin() const { return begin_pos_; }
@@ -31,6 +31,9 @@ public:
     SelectionState get_state() const { return state_; }
     void set_state(SelectionState s) { state_ = s; }
 
+    SelectionShape get_shape() const { return shape_; }
+    void set_shape(SelectionShape s) { shape_ = s; }
+
     void set_begin(const Vec2i& begin) { begin_pos_ = begin; }
     void set_end(const Vec2i& end) { end_pos_ = end; }
 
@@ -40,6 +43,7 @@ private:
     Vec2i begin_pos_;
     Vec2i end_pos_;
     SelectionState state_;
+    SelectionShape shape_;
 };
 
 #endif // SELECTION_HPP_

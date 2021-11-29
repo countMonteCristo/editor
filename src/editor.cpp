@@ -96,9 +96,9 @@ void Editor::render() {
 }
 
 void Editor::handle_text_input(const char* text) {
-    if (selection_.get_state() != SELECTION_HIDDEN) {
-        remove_text(selection_.start(), selection_.finish());
-        selection_.set_state(SELECTION_HIDDEN);
+    if (selection_.get_state() != SelectionState::HIDDEN) {
+        remove_text(selection_.start(), selection_.finish(), selection_.get_shape());
+        selection_.set_state(SelectionState::HIDDEN);
         move_cursor(selection_.start() - cursor_pos());
     }
 
@@ -121,16 +121,16 @@ void Editor::move_cursor(int dx, int dy) {
     Vec2i end_pos = cursor_.text_pos();
 
     switch ( selection_.get_state() ) {
-        case SELECTION_STARTED:
+        case SelectionState::STARTED:
             selection_.set_begin(begin_pos);
             selection_.set_end(end_pos);
             break;
-        case SELECTION_IN_PROGRESS:
+        case SelectionState::IN_PROGRESS:
             selection_.set_end(end_pos);
             break;
-        case SELECTION_FINISHED:
+        case SelectionState::FINISHED:
             break;
-        case SELECTION_HIDDEN:
+        case SelectionState::HIDDEN:
             break;
         default:
             assert(0 && "unrichable");
@@ -148,32 +148,32 @@ void Editor::set_selection_status(SelectionState s) {
 
 void Editor::update_selection(bool shift_down) {
     switch ( selection_.get_state() ) {
-        case SELECTION_STARTED:
+        case SelectionState::STARTED:
             if ( shift_down ) {
-                selection_.set_state(SELECTION_IN_PROGRESS);
+                selection_.set_state(SelectionState::IN_PROGRESS);
             } else {
-                selection_.set_state(SELECTION_FINISHED);
+                selection_.set_state(SelectionState::FINISHED);
             }
             break;
-        case SELECTION_IN_PROGRESS:
+        case SelectionState::IN_PROGRESS:
             if ( shift_down ) {
                 // still in progress
             } else {
-                selection_.set_state(SELECTION_FINISHED);
+                selection_.set_state(SelectionState::FINISHED);
             }
             break;
-        case SELECTION_HIDDEN:
+        case SelectionState::HIDDEN:
             if ( shift_down ) {
-                selection_.set_state(SELECTION_STARTED);
+                selection_.set_state(SelectionState::STARTED);
             } else {
                 // do nothing
             }
             break;
-        case SELECTION_FINISHED:
+        case SelectionState::FINISHED:
             if ( shift_down ) {
-                selection_.set_state(SELECTION_IN_PROGRESS);
+                selection_.set_state(SelectionState::IN_PROGRESS);
             } else {
-                selection_.set_state(SELECTION_HIDDEN);
+                selection_.set_state(SelectionState::HIDDEN);
             }
             break;
         default:
@@ -182,7 +182,7 @@ void Editor::update_selection(bool shift_down) {
 }
 
 void Editor::selection_to_clipboard() {
-    if ( selection_.get_state() == SELECTION_HIDDEN ) {
+    if ( selection_.get_state() == SelectionState::HIDDEN ) {
         return;
     }
 
@@ -202,10 +202,10 @@ void Editor::insert_from_clipboard() {
 }
 
 void Editor::cut_to_clipboard() {
-    if ( selection_.get_state() != SELECTION_HIDDEN ) {
+    if ( selection_.get_state() != SelectionState::HIDDEN ) {
         selection_to_clipboard();
-        remove_text(selection_.start(), selection_.finish());
-        selection_.set_state(SELECTION_HIDDEN);
+        remove_text(selection_.start(), selection_.finish(), selection_.get_shape());
+        selection_.set_state(SelectionState::HIDDEN);
         move_cursor(selection_.start() - cursor_pos());
     }
 }
@@ -213,15 +213,30 @@ void Editor::cut_to_clipboard() {
 void Editor::select_all() {
     selection_.set_begin({0, 0});
     selection_.set_end({doc_.line_width(-1), doc_.total_lines() - 1});
-    selection_.set_state(SELECTION_FINISHED);
+    selection_.set_state(SelectionState::FINISHED);
+}
+
+void Editor::toggle_selection_shape() {
+    SelectionShape new_shape = SelectionShape::TEXT_LIKE;
+    switch ( selection_.get_shape() ) {
+        case SelectionShape::TEXT_LIKE:
+            new_shape = SelectionShape::RECTANGULAR;
+            break;
+        case SelectionShape::RECTANGULAR:
+            new_shape = SelectionShape::TEXT_LIKE;
+            break;
+        default:
+            Logger::instance().critical(std::string("Unhandled selection shape in ") + __func__);
+    }
+    selection_.set_shape(new_shape);
 }
 
 void Editor::insert_text(const Vec2i& pos, const Text& text) {
-    doc_.insert_text(pos, text);
+    doc_.insert_text(pos, text, cursor_.text_pos(), SelectionShape::TEXT_LIKE);
 }
 
-void Editor::remove_text(Vec2i from, Vec2i to) {
-    doc_.remove_text(from, to);
+void Editor::remove_text(Vec2i from, Vec2i to, SelectionShape shape) {
+    doc_.remove_text(from, to, cursor_.text_pos(), shape);
 }
 
 void Editor::goto_space(bool forward) {
@@ -258,14 +273,14 @@ void Editor::goto_space(bool forward) {
 }
 
 void Editor::add_new_line() {
-    if (selection_.get_state() != SELECTION_HIDDEN) {
-        remove_text(selection_.start(), selection_.finish());
-        selection_.set_state(SELECTION_HIDDEN);
+    if (selection_.get_state() != SelectionState::HIDDEN) {
+        remove_text(selection_.start(), selection_.finish(), selection_.get_shape());
+        selection_.set_state(SelectionState::HIDDEN);
         move_cursor(selection_.start() - cursor_pos());
     }
 
     const Vec2i& pos = cursor_pos();
-    doc_.add_newline(pos);
+    doc_.add_newline(pos, pos);
     _update_max_line_no_chars_width();
 
     move_cursor(-pos.x, 1);
@@ -275,23 +290,23 @@ void Editor::add_new_line() {
 void Editor::handle_backspace() {
     const Vec2i& pos = cursor_pos();
 
-    if (selection_.get_state() == SELECTION_HIDDEN) {
+    if (selection_.get_state() == SelectionState::HIDDEN) {
 
         if ( pos.x > 0 ) {
-            remove_text(pos - Vec2i(1, 0), pos);
+            remove_text(pos - Vec2i(1, 0), pos, SelectionShape::TEXT_LIKE);
             move_cursor({-1, 0});
         } else {
             if ( pos.y > 0 ) {
                 int prev_line_width = doc_.line_width(pos.y-1);
-                doc_.remove_newline({prev_line_width, pos.y-1});
+                doc_.remove_newline({prev_line_width, pos.y-1}, pos);
                 _update_max_line_no_chars_width();
                 move_cursor({prev_line_width, -1});
             }
         }
     } else {
         // delete selection
-        remove_text(selection_.start(), selection_.finish());
-        selection_.set_state(SELECTION_HIDDEN);
+        remove_text(selection_.start(), selection_.finish(), selection_.get_shape());
+        selection_.set_state(SelectionState::HIDDEN);
         move_cursor(selection_.start() - cursor_pos());
     }
 }
@@ -299,19 +314,19 @@ void Editor::handle_backspace() {
 void Editor::handle_delete() {
     const Vec2i& pos = cursor_pos();
 
-    if (selection_.get_state() == SELECTION_HIDDEN) {
+    if (selection_.get_state() == SelectionState::HIDDEN) {
         if ( pos.x < doc_.line_width(pos.y) ) {
-            remove_text(pos, pos + Vec2i(1, 0));
+            remove_text(pos, pos + Vec2i(1, 0), SelectionShape::TEXT_LIKE);
         } else {
             if ( pos.y < doc_.total_lines() - 1 ) {
-                doc_.remove_newline(cursor_pos());
+                doc_.remove_newline(cursor_pos(), cursor_pos());
                 _update_max_line_no_chars_width();
             }
         }
     } else {
         // delete selection
-        remove_text(selection_.start(), selection_.finish());
-        selection_.set_state(SELECTION_HIDDEN);
+        remove_text(selection_.start(), selection_.finish(), selection_.get_shape());
+        selection_.set_state(SelectionState::HIDDEN);
         move_cursor(selection_.start() - cursor_pos());
     }
 }
@@ -410,14 +425,14 @@ void Editor::handle_mouse_click(const SDL_MouseButtonEvent& event) {
         update_selection(true);
         selection_.set_begin(cursor_pos());
         selection_.set_end(cursor_pos());
-        selection_.set_state(SELECTION_IN_PROGRESS);
+        selection_.set_state(SelectionState::IN_PROGRESS);
     }
 }
 
 void Editor::handle_mouse_button_up(const SDL_MouseButtonEvent& event) {
     UNUSED(event);
 
-    if (selection_.get_state() == SELECTION_IN_PROGRESS) {
+    if (selection_.get_state() == SelectionState::IN_PROGRESS) {
         update_selection(false);
     }
 }
@@ -426,7 +441,7 @@ void Editor::handle_mouse_move(const SDL_MouseMotionEvent& event) {
     _set_mouse_cursor_shape(event.x, event.y);
 
     if (event.state & SDL_BUTTON_LMASK) {
-        if (selection_.get_state() != SELECTION_HIDDEN) {
+        if (selection_.get_state() != SelectionState::HIDDEN) {
             bool ok;
             Vec2i delta = _get_mouse_local_delta(ok);
             if (!ok)
@@ -483,11 +498,38 @@ void Editor::log_debug_history() {
 
 
 void Editor::handle_undo() {
-    doc_.undo();
-    _adjust_cursor();
+    selection_.set_state(SelectionState::HIDDEN);
+    const pItem_t& item = doc_.undo();
+    const Vec2i& cursor_pos = cursor_.text_pos();
+    Vec2i delta(0, 0);
+
+    if ( item ) {
+        SelectionShape shape = item->selection_shape();
+        if ( shape != SelectionShape::NONE) {
+            const Vec2i begin = item->pos();
+            const Vec2i end = item->end();
+
+            selection_.set_begin(begin);
+            selection_.set_end(end);
+            selection_.set_state(SelectionState::FINISHED);
+            selection_.set_shape(shape);
+        }
+        delta = item->cursor() - cursor_pos;
+    }
+    move_cursor(delta);
+    // _adjust_cursor();
 }
 
 void Editor::handle_redo() {
-    doc_.redo();
-    _adjust_cursor();
+    selection_.set_state(SelectionState::HIDDEN);
+    const pItem_t& item = doc_.redo();
+    const Vec2i& cursor_pos = cursor_.text_pos();
+    Vec2i delta(0, 0);
+
+    if (item) {
+        delta = item->cursor() - cursor_pos;
+    }
+
+    move_cursor(delta);
+    // _adjust_cursor();
 }

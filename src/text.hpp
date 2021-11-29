@@ -2,6 +2,8 @@
 #define TEXT_HPP_
 
 #include "glyph.hpp"
+#include "common.hpp"
+
 
 typedef std::vector<Glyph> line_t;
 typedef std::vector<line_t> content_t;
@@ -21,12 +23,14 @@ public:
     int max_line_width() const;
     const line_t& line_at(const Vec2i& pos) const { return content_[pos.y];}
 
+    const Vec2i get_end(const Vec2i& start, SelectionShape shape) const;
+
     void resize(size_t nlines) { content_.resize(nlines); }
 
     Text& operator+=(const Text& t);
     std::pair<Text, Text> split(const Vec2i& pos);
-    void insert_at(const Vec2i& pos, const Text& text);
-    Text remove(const Vec2i& from, const Vec2i& to);
+    void insert_at(const Vec2i& pos, const Text& text, SelectionShape shape);
+    Text remove(const Vec2i& from, const Vec2i& to, SelectionShape shape);
     void add_newline(const Vec2i& pos);
     void remove_newline(const Vec2i& pos);
 

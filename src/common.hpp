@@ -33,6 +33,12 @@ static const Uint32 FRAME_TIME_MS = static_cast<Uint32>(1000.0 / FPS);
     static_cast<uint8_t>((x & 0x0000FF00) >> 8*1), \
     static_cast<uint8_t>((x & 0x000000FF) >> 8*0)
 
+enum class SelectionShape {
+    NONE = 0,
+    TEXT_LIKE,
+    RECTANGULAR,
+};
+const std::string selection_shape_as_str(SelectionShape shape);
 
 Vec2i camera_project_point(SDL_Window *window, Vec2i point, Vec2i camera_pos);
 SDL_Rect resize_to_char_size(const SDL_Rect& r, int w, int h);

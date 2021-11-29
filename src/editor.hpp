@@ -40,9 +40,10 @@ public:
     void insert_from_clipboard();
     void cut_to_clipboard();
     void select_all();
+    void toggle_selection_shape();
 
     void insert_text(const Vec2i& pos, const Text& text);
-    void remove_text(Vec2i from, Vec2i to);
+    void remove_text(Vec2i from, Vec2i to, SelectionShape shape);
 
     inline const Vec2i& cursor_pos() const {return cursor_.text_pos();}
     inline const Vec2i& camera_pos() const { return camera_pos_; }
