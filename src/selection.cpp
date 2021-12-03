@@ -24,6 +24,7 @@ const char* ss_to_cstr(SelectionState s)
     }
 }
 
+// TODO: refactor cycles, they have a lot in common
 std::string Selection::selected_text(const Text& text) {
     Vec2i sel_start = start();
     Vec2i sel_finish = finish();
@@ -36,7 +37,7 @@ std::string Selection::selected_text(const Text& text) {
                 int finish_col = (row == sel_finish.y)? sel_finish.x: text.line_width(row);
 
                 for (int col = start_col; col < finish_col; col++) {
-                    data += std::string(text.line_at({0, row})[col].c_str());
+                    data += std::string(text.line_at({0, row})[col].real().c_str());
                 }
                 if (row < sel_finish.y) {
                     data += '\n';
@@ -54,7 +55,7 @@ std::string Selection::selected_text(const Text& text) {
 
                 for (int col = start_col; col < finish_col; col++) {
                     if (col < text.line_width(row))
-                        data += std::string(text.line_at({0, row})[col].c_str());
+                        data += std::string(text.line_at({0, row})[col].real().c_str());
                     // else
                     //     data += std::string(" ");
                 }

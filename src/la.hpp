@@ -27,6 +27,13 @@ struct Vec2 {
         return Vec2(x / v.x, y / v.y);
     }
 
+    Vec2 operator-() const {
+        return Vec2(-x, -y);
+    }
+    Vec2 operator+() const {
+        return Vec2(x, y);
+    }
+
     Vec2& operator+=(const Vec2<T>& v) {
         x += v.x;
         y += v.y;

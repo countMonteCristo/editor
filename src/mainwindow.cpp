@@ -79,6 +79,7 @@ void MainWindow::show() {
         // TODO: multiple cursors
         // TODO: command line for searching, replacing, etc
         // TODO: menu bar
+        // TODO: add tab replacing option
 
         while(SDL_PollEvent(&event) != 0) {
             bool control_down = Keyboard::ctrl_pressed();
@@ -156,6 +157,10 @@ void MainWindow::show() {
                         }
                         case SDLK_RIGHT: case SDLK_LEFT: case SDLK_UP: case SDLK_DOWN: {
                             editor_.handle_keyboard_move_pressed();
+                            break;
+                        }
+                        case SDLK_TAB: {
+                            editor_.handle_tab_pressed();
                             break;
                         }
                         case SDLK_RETURN: {
