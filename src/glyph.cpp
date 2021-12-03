@@ -10,11 +10,6 @@ Glyph::Glyph() {
     set_color(Settings::const_instance().const_colors().text);
 }
 
-Glyph::Glyph(const char* visible_text) : Glyph() {
-    if (visible_text)
-        visible_ch_ = std::string(visible_text);
-}
-
 Glyph::Glyph(const char* real_text, const char* visible_text) : Glyph() {
     real_ch_ = std::string(real_text);
 

@@ -12,13 +12,11 @@
 class Glyph {
 public:
     explicit Glyph(const char* real_text, const char* visible_text);
-    explicit Glyph(const char* visible_text);
     explicit Glyph();
 
     Glyph& operator=(const Glyph& other);
     ~Glyph() {}
 
-    // const char* c_str() const { return is_special_? actual_ch_.c_str(): .c_str(); }
     const std::string& real() const { return real_ch_; }
     const std::string& visible() const { return visible_ch_; }
 

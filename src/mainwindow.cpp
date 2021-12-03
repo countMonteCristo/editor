@@ -79,7 +79,8 @@ void MainWindow::show() {
         // TODO: multiple cursors
         // TODO: command line for searching, replacing, etc
         // TODO: menu bar
-        // TODO: add tab replacing option
+        // TODO: tab could be replaced with spaces
+        // TODO: after Ctrl+Alt and input text cursor moves to the beginning of the file
 
         while(SDL_PollEvent(&event) != 0) {
             bool control_down = Keyboard::ctrl_pressed();
