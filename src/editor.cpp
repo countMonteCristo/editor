@@ -13,8 +13,9 @@
 
 
 Editor::Editor()
-    : max_line_no_chars_width_(1), camera_pos_({0, 0})
+    : camera_pos_({0, 0})
 {
+    _update_max_line_no_chars_width();
 }
 
 void Editor::_update_max_line_no_chars_width() {
@@ -193,7 +194,7 @@ void Editor::selection_to_clipboard() {
 void Editor::insert_from_clipboard() {
     char *clipboard_text = SDL_GetClipboardText();
     if (clipboard_text) {
-        Text text = Document::load_raw(clipboard_text);
+        Text text = doc_.load_raw(clipboard_text);
         insert_text(cursor_pos(), text);
     }
     SDL_free(clipboard_text);
@@ -369,9 +370,53 @@ void Editor::handle_keyboard_move_pressed() {
 }
 
 void Editor::handle_shift_released() {
-    update_selection(false);
+    selection_.set_state(SelectionState::FINISHED);
 }
 
+
+void Editor::handle_tab_pressed() {
+    const Glyph& tab_glyph = doc_.specials().at('\t');
+    Vec2i dpos(1, 0);
+
+    if (selection_.get_state() == SelectionState::HIDDEN) {
+        doc_.insert_glyph(cursor_pos(), tab_glyph, cursor_pos(), SelectionShape::TEXT_LIKE);
+        move_cursor(dpos);
+    } else {
+        bool shift_down = Keyboard::shift_pressed();
+
+        Vec2i sel_start = selection_.start();
+        Vec2i sel_finish = selection_.finish();
+        int row_start = sel_start.y;
+        int row_finish = sel_finish.y;
+
+        if ( !shift_down ) { // add 1 tab at the beginning of each selected line
+            for ( int row = row_start; row <= row_finish; row++ ) {
+                doc_.insert_glyph(Vec2i(0, row), tab_glyph, cursor_pos(), selection_.get_shape());
+                if ( row == cursor_pos().y ) {
+                    move_cursor(dpos);
+                }
+            }
+            selection_.set_begin(sel_start + dpos);
+            selection_.set_end(sel_finish + dpos);
+        } else {            // remove 1 tab at the beginning of each selected line
+
+            for ( int row = row_start; row <= row_finish; row++ ) {
+                const Glyph& first = doc_.glyph_at(Vec2i(0, row));
+                if ( first == tab_glyph) {
+                    if ( row == row_start )
+                        selection_.set_begin(sel_start - dpos);
+                    if ( row == row_finish )
+                        selection_.set_end(sel_finish - dpos);
+
+                    remove_text(Vec2i(0, row), Vec2i(1, row), selection_.get_shape());
+
+                    if ( row == cursor_pos().y )
+                        move_cursor(-dpos);
+                }
+            }
+        }
+    }
+}
 
 void Editor::handle_return_pressed() {
     add_new_line();

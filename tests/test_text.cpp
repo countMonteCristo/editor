@@ -5,12 +5,14 @@
 #include "document.hpp"
 
 
+// TODO: add tests for special characters
+// TODO: add tests for real and visible text
 class GlyphFixture: public ::testing::Test {
 protected:
     void SetUp() override {
         g1 = Glyph();
-        g2 = Glyph('q');
-        g3 = Glyph("Ы");
+        g2 = Glyph("q", nullptr);
+        g3 = Glyph("Ы", nullptr);
     }
 
     Glyph g1;
@@ -22,8 +24,9 @@ class TextFixture: public ::testing::Test {
 protected:
     void SetUp() override {
         empty_text = Text();
+        Document doc;
 
-        text_from_content = Document::load_raw("print_if_you_want\nHello\nWorld!");
+        text_from_content = doc.load_raw("print_if_you_want\nHello\nWorld!");
         text_from_text = Text(text_from_content);
     }
 
@@ -33,13 +36,13 @@ protected:
 };
 
 TEST_F(GlyphFixture, ValidGlyph) {
-    EXPECT_STREQ(g1.c_str(), "");
-    EXPECT_STREQ(g2.c_str(), "q");
-    EXPECT_STREQ(g3.c_str(), "Ы");
+    EXPECT_STREQ(g1.real().c_str(), "");
+    EXPECT_STREQ(g2.real().c_str(), "q");
+    EXPECT_STREQ(g3.real().c_str(), "Ы");
 
-    EXPECT_EQ(g1.ch().size(), 0);
-    EXPECT_EQ(g2.ch().size(), 1);
-    EXPECT_EQ(g3.ch().size(), 2);
+    EXPECT_EQ(g1.real().size(), 0);
+    EXPECT_EQ(g2.real().size(), 1);
+    EXPECT_EQ(g3.real().size(), 2);
 
     uint32_t color = 0xabcdef12;
     g1.set_color(color);
@@ -47,7 +50,7 @@ TEST_F(GlyphFixture, ValidGlyph) {
 
     std::hash<Glyph> glyph_hash;
     size_t hash_value = glyph_hash(g3);
-    EXPECT_EQ(hash_value, std::hash<std::string>()(g3.ch()));
+    EXPECT_EQ(hash_value, std::hash<std::string>()(g3.real()));
 }
 
 TEST_F(TextFixture, TextInit) {
@@ -66,7 +69,7 @@ TEST_F(TextFixture, TextChange) {
     text_from_content += text_from_text;
 
     EXPECT_EQ(text_from_content.total_lines(), text_from_content_lines + text_from_text.total_lines() - 1);
-    EXPECT_STREQ(text_from_content.line_at({6, 2}).at(6).c_str(), "p");
+    EXPECT_STREQ(text_from_content.line_at({6, 2}).at(6).real().c_str(), "p");
 }
 
 TEST_F(TextFixture, TextSplit) {
@@ -75,25 +78,26 @@ TEST_F(TextFixture, TextSplit) {
     const auto& last_line = text_from_content.line_at({0, text_from_content.total_lines()-1});
     int last_line_width = text_from_content.line_width(text_from_content.total_lines()-1);
 
-    const char* first_char = text_from_content.line_at({0, 0}).at(0).c_str();
-    const char* last_char = last_line.at(last_line_width-1).c_str();
-    const char* split_char = text_from_content.line_at(pos).at(pos.x).c_str();
-    const char* prev_char = text_from_content.line_at(pos).at(pos.x-1).c_str();
+    const char* first_char = text_from_content.line_at({0, 0}).at(0).real().c_str();
+    const char* last_char = last_line.at(last_line_width-1).real().c_str();
+    const char* split_char = text_from_content.line_at(pos).at(pos.x).real().c_str();
+    const char* prev_char = text_from_content.line_at(pos).at(pos.x-1).real().c_str();
     auto pair = text_from_content.split(pos);
     EXPECT_EQ(pair.first.total_lines(), pos.y + 1);
     EXPECT_EQ(pair.second.total_lines(), text_from_content.total_lines() - pos.y);
 
-    EXPECT_STREQ(pair.first.line_at({0, 0}).at(0).c_str(), first_char);
-    EXPECT_STREQ(pair.first.line_at(pos).at(pos.x-1).c_str(), prev_char);
-    EXPECT_STREQ(pair.second.line_at({0, 0}).at(0).c_str(), split_char);
-    EXPECT_STREQ(pair.second.line_at({last_line_width-1, 1}).at(last_line_width-1).c_str(), last_char);
+    EXPECT_STREQ(pair.first.line_at({0, 0}).at(0).real().c_str(), first_char);
+    EXPECT_STREQ(pair.first.line_at(pos).at(pos.x-1).real().c_str(), prev_char);
+    EXPECT_STREQ(pair.second.line_at({0, 0}).at(0).real().c_str(), split_char);
+    EXPECT_STREQ(pair.second.line_at({last_line_width-1, 1}).at(last_line_width-1).real().c_str(), last_char);
 }
 
 TEST_F(TextFixture, TextInsertMultiLine) {
     Vec2i pos = {2, 1};
-    Text inserted = Document::load_raw("load from\nanother file");
+    Document doc;
+    Text inserted = doc.load_raw("load from\nanother file");
 
-    const char* inserted_first_char = inserted.line_at({0, 0}).at(0).c_str();
+    const char* inserted_first_char = inserted.line_at({0, 0}).at(0).real().c_str();
 
     auto& text = text_from_content;
     int original_lines_count = text.total_lines();
@@ -106,7 +110,7 @@ TEST_F(TextFixture, TextInsertMultiLine) {
     EXPECT_EQ(text.total_lines(), original_lines_count + inserted.total_lines() - 1);
 
     // char at split position should be equal to the first char of the inserted text
-    EXPECT_STREQ(text.line_at(pos).at(pos.x).c_str(), inserted_first_char);
+    EXPECT_STREQ(text.line_at(pos).at(pos.x).real().c_str(), inserted_first_char);
 
     // width of the line at insertion_pos.y should be equal to inserted_line_width + inserted.first_line_width
     EXPECT_EQ(text.line_width(pos.y), pos.x + inserted.line_width(0));
@@ -117,9 +121,10 @@ TEST_F(TextFixture, TextInsertMultiLine) {
 
 TEST_F(TextFixture, TestInsertSingleLine) {
     Vec2i pos = {2, 1};
-    Text inserted = Document::load_raw("load from");
+    Document doc;
+    Text inserted = doc.load_raw("load from");
 
-    const char* inserted_first_char = inserted.line_at({0, 0}).at(0).c_str();
+    const char* inserted_first_char = inserted.line_at({0, 0}).at(0).real().c_str();
 
     auto& text = text_from_content;
     int original_lines_count = text.total_lines();
@@ -132,7 +137,7 @@ TEST_F(TextFixture, TestInsertSingleLine) {
     EXPECT_EQ(text.total_lines(), original_lines_count + inserted.total_lines() - 1);
 
     // char at split position should be equal to the first char of the inserted text
-    EXPECT_STREQ(text.line_at(pos).at(pos.x).c_str(), inserted_first_char);
+    EXPECT_STREQ(text.line_at(pos).at(pos.x).real().c_str(), inserted_first_char);
 
     // width of the line at insertion_pos.y should be equal to inserted_line_width + inserted.first_line_width
     EXPECT_EQ(text.line_width(pos.y), inserted.line_width(0) + inserted_line_width);
@@ -146,8 +151,8 @@ TEST_F(TextFixture, TestRemoveSingleLine) {
     int original_line_width_at_removing_from = text.line_width(from.y);
     int original_total = text.total_lines();
 
-    std::string first_removed = text.line_at(from).at(from.x).ch();
-    std::string last_removed = text.line_at(to).at(to.x-1).ch();
+    std::string first_removed = text.line_at(from).at(from.x).real();
+    std::string last_removed = text.line_at(to).at(to.x-1).real();
 
     Text removed = text.remove(from, to, SelectionShape::TEXT_LIKE);
 
@@ -157,8 +162,8 @@ TEST_F(TextFixture, TestRemoveSingleLine) {
     EXPECT_EQ(removed.total_lines(), 1);
     EXPECT_EQ(removed.line_width(0), to.x - from.x);
 
-    EXPECT_STREQ(first_removed.c_str(), removed.line_at({0, 0}).at(0).c_str());
-    EXPECT_STREQ(last_removed.c_str(), removed.line_at({0, 0}).at(removed.line_width(0)-1).c_str());
+    EXPECT_STREQ(first_removed.c_str(), removed.line_at({0, 0}).at(0).real().c_str());
+    EXPECT_STREQ(last_removed.c_str(), removed.line_at({0, 0}).at(removed.line_width(0)-1).real().c_str());
 }
 
 TEST_F(TextFixture, TestRemoveMultiLine) {
@@ -171,8 +176,8 @@ TEST_F(TextFixture, TestRemoveMultiLine) {
     int original_line_width_at_removing_to = text.line_width(to.y);
     int original_total = text.total_lines();
 
-    std::string first_removed = text.line_at(from).at(from.x).ch();
-    std::string last_removed = text.line_at(to).at(to.x-1).ch();
+    std::string first_removed = text.line_at(from).at(from.x).real();
+    std::string last_removed = text.line_at(to).at(to.x-1).real();
 
     Text removed = text.remove(from, to, SelectionShape::TEXT_LIKE);
     int removed_total = to.y - from.y + 1;
@@ -183,8 +188,8 @@ TEST_F(TextFixture, TestRemoveMultiLine) {
     EXPECT_EQ(removed.total_lines(), removed_total);
     EXPECT_EQ(removed.line_width(0), original_line_width_at_removing_from - from.x);
 
-    EXPECT_STREQ(first_removed.c_str(), removed.line_at({0, 0}).at(0).c_str());
-    EXPECT_STREQ(last_removed.c_str(), removed.line_at({0, removed.total_lines()-1}).at(removed.line_width(removed.total_lines()-1)-1).c_str());
+    EXPECT_STREQ(first_removed.c_str(), removed.line_at({0, 0}).at(0).real().c_str());
+    EXPECT_STREQ(last_removed.c_str(), removed.line_at({0, removed.total_lines()-1}).at(removed.line_width(removed.total_lines()-1)-1).real().c_str());
 }
 
 TEST_F(TextFixture, TextAddNewLine) {

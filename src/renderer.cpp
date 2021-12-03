@@ -137,12 +137,15 @@ void EditorRenderer::render_line_numbers(const Text& text, Vec2i camera_pos) {
 
     const uint32_t line_no_color = Settings::const_instance().const_colors().line_no;
 
+    char buf[2] = {0};
+
     for (int line_no = 1; line_no <= text.total_lines(); line_no++) {
         std::string line_no_str = std::to_string(line_no);
         line_t line_no_line;
         line_no_line.reserve(line_no_str.size());
         for (char c: line_no_str) {
-            Glyph g(c);
+            buf[0] = c;
+            Glyph g(buf, nullptr);
             g.set_color(line_no_color);
             line_no_line.push_back(g);
         }
@@ -165,9 +168,11 @@ void EditorRenderer::render_info_panel(const Cursor& cursor) {
     std::stringstream info_stream;
     info_stream << "Row: " << cursor.row() + 1 << " Column: " << cursor.col() + 1;
 
+    char buf[2] = {0};
     line_t glyphs;
     for(char c: info_stream.str()) {
-        Glyph g(c);
+        buf[0] = c;
+        Glyph g(buf, nullptr);
         g.set_color(text_color);
         glyphs.push_back(g);
     }

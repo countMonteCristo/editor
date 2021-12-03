@@ -6,6 +6,7 @@
 #include <sstream>
 
 
+// TODO: save full selection info in history item
 HistoryItem::HistoryItem(const Vec2i& pos, const Text& text, const Vec2i& cursor, SelectionShape shape)
     : pos_(pos), text_(text), selection_shape_(shape), cursor_pos_(cursor)
 {
@@ -158,7 +159,7 @@ bool AddTextItem::squash(const HistoryItem* other) {
     const Text& p_text = p->text();
 
     // do not squash items if other item contains only space character
-    if ((p_text.total_lines() == 1) && (p_text.line_width(0) == 1) && (p_text.line_at({0, 0}).front().ch() == " ")) {
+    if ((p_text.total_lines() == 1) && (p_text.line_width(0) == 1) && (p_text.line_at({0, 0}).front().real() == " ")) {
         return false;
     }
 

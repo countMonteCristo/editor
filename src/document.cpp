@@ -9,26 +9,34 @@
 
 
 Document::Document() : max_line_width_(0), filepath_("out.txt") {
+    _init_special_chars();
 }
 
 line_t Document::load_line(const char* start, const char* stop) {
     line_t glyphs;
 
-    char buf[2];
+    char buf[3] = {0};
     const char* pos = start;
     while (pos < stop) {
         char c = *pos;
         Glyph g;
-        if ( (c >= ASCII_CHAR_LOW) && (c <= ASCII_CHAR_HIGH) ) {
-            g = Glyph(c);
+
+        auto it = special_chars_.find(c);
+        if ( it != special_chars_.end() ) {
+            g = it->second;
             pos++;
         } else {
             buf[0] = c;
-            buf[1] = *(pos+1);
-            pos += 2;
-            g = Glyph(buf);
+            if ( (c >= ASCII_CHAR_LOW) && (c <= ASCII_CHAR_HIGH) ) {
+                buf[1] = 0;
+                pos++;
+            } else {
+                buf[1] = *(pos+1);
+                pos += 2;
+            }
+            g = Glyph(buf, nullptr);
+            g.set_color(Settings::const_instance().const_colors().text);
         }
-        g.set_color(Settings::const_instance().const_colors().text);
         glyphs.push_back(g);
     }
 
@@ -84,13 +92,21 @@ void Document::save_to_file() {
 
     for (const auto& line: text_.content()) {
         for (const Glyph& g: line) {
-            outfile << g.c_str();
+            outfile << g.real().c_str();
         }
         outfile << std::endl;
     }
     outfile.close();
 }
 
+
+void Document::insert_glyph(const Vec2i& pos, const Glyph& glyph, const Vec2i& cursor, SelectionShape shape, bool remember) {
+    content_t content;
+    content.resize(1);
+    content[0].push_back(glyph);
+    Text text(content);
+    insert_text(pos, text, cursor, shape, remember);
+}
 
 void Document::insert_text(const Vec2i& pos, const Text& text, const Vec2i& cursor, SelectionShape shape, bool remember) {
     if (remember) {
@@ -131,6 +147,17 @@ void Document::remove_newline(const Vec2i& pos, const Vec2i& cursor, bool rememb
     }
 }
 
+
+// TODO: add setting for special chars color
+void Document::_init_special_chars() {
+    // tab -> →
+    char buf[4] = {
+        static_cast<char>(0xe2), static_cast<char>(0x86), static_cast<char>(0x92), 0
+    };
+    Glyph g("\t", buf);
+    g.set_color(0x888888ff);
+    special_chars_['\t'] = g;
+}
 
 void Document::log_items() {
     history_.log_items();

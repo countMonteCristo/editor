@@ -63,6 +63,7 @@ public:
     void handle_delete();
     void handle_keyboard_move_pressed();
     void handle_shift_released();
+    void handle_tab_pressed();
     void handle_return_pressed();
     void handle_home_pressed();
     void handle_end_pressed();

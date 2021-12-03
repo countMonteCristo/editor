@@ -118,7 +118,7 @@ SDL_Texture*  Font::get_glyph_texture(const Glyph& glyph) {
 
 SDL_Surface* Font::_generate_glyph_surface(const Glyph& glyph) {
     SDL_Color sdl_color = { UNWRAP_U64(glyph.color()) };
-    const char* text = glyph.c_str();
+    const char* text = glyph.visible().c_str();
 #if FONT_RENDER_STYLE == FONT_RENDER_SOLID
     SDL_Surface *glyph_surface = ttfp(TTF_RenderUTF8_Solid(font_, text, sdl_color));
 #elif FONT_RENDER_STYLE == FONT_RENDER_SHADED
